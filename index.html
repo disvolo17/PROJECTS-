@@ -3,321 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Visionary Edition</title>
+    <title>Core OS 26.3 | Final Release</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/tracking-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/data/face-min.js"></script>
     
     <style>
         :root {
-            --ios-bg: radial-gradient(circle at top right, #ffffff 0%, #f0f2f5 100%);
-            --glass: blur(100px) saturate(250%) brightness(1.1);
-            --card: rgba(255, 255, 255, 0.4);
+            --ios-bg: radial-gradient(circle at 50% 50%, #ffffff 0%, #e2e5ea 100%);
+            --glass: blur(100px) saturate(210%) brightness(1.05);
+            --card: rgba(255, 255, 255, 0.45);
             --accent: #007aff;
-            --text-main: #1d1d1f;
-            --spring: cubic-bezier(0.2, 1, 0.2, 1);
+            --spring: cubic-bezier(0.2, 1, 0.2, 1.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        body { background: var(--ios-bg); font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; color: #1d1d1f; }
 
-        body {
-            background: var(--ios-bg);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            color: var(--text-main);
-        }
-
-        /* --- Global Background Flash --- */
-        .danger { 
-            position: fixed; inset: 0; 
-            background: rgba(255, 59, 48, 0); 
-            pointer-events: none; z-index: 9999; 
-            transition: background 0.3s ease;
-        }
-        .danger.flash { animation: alert-pulse 0.4s infinite alternate; }
-        @keyframes alert-pulse { 0% { background: rgba(255, 59, 48, 0); } 100% { background: rgba(255, 59, 48, 0.6); } }
-
-        /* --- iOS 26.3 Navigation Dock --- */
+        /* --- UI Elements --- */
         nav {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: var(--glass);
-            padding: 10px;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.7);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.05);
-            z-index: 2000;
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; background: rgba(255, 255, 255, 0.6); backdrop-filter: var(--glass);
+            padding: 8px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.06); z-index: 5000;
         }
-
         .nav-btn {
-            padding: 14px 24px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            cursor: pointer;
-            transition: 0.5s var(--spring);
-            opacity: 0.3;
-            color: var(--text-main);
+            padding: 12px 24px; border-radius: 40px; font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: 0.4s var(--spring); opacity: 0.3;
         }
+        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
 
-        .nav-btn.active { 
-            opacity: 1; 
-            background: #fff; 
-            transform: scale(1.05) translateY(-2px); 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
-        }
+        .view { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+        .view.active { display: flex; animation: ios-in 0.8s var(--spring); }
+        @keyframes ios-in { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* --- Layout --- */
-        .stage { height: 100vh; display: flex; align-items: center; justify-content: center; width: 100%; }
-        
-        .view { 
-            display: none; width: 100%; max-width: 1100px; padding: 40px;
-            flex-direction: column; align-items: center;
-        }
-        .view.active { display: flex; animation: ios-reveal 0.8s var(--spring) forwards; }
+        /* --- P1: Flow --- */
+        #flow-input { background: none; border: none; font-size: 5rem; font-weight: 800; outline: none; text-align: center; letter-spacing: -3px; width: 100%; }
+        .danger { position: fixed; inset: 0; background: rgba(255, 59, 48, 0); pointer-events: none; z-index: 4000; transition: 0.3s; }
+        .danger.flash { animation: alert 0.4s infinite alternate; }
+        @keyframes alert { 0% { background: rgba(255, 59, 48, 0); } 100% { background: rgba(255, 59, 48, 0.5); } }
 
-        @keyframes ios-reveal {
-            0% { opacity: 0; transform: scale(0.9) translateY(40px); filter: blur(20px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-        }
-
-        /* 1. Поток */
-        #flow-input { 
-            background: none; border: none; font-size: 6rem; font-weight: 800; 
-            outline: none; width: 100%; text-align: center; letter-spacing: -4px;
-            color: var(--text-main);
-        }
-
-        /* 2. Очищение */
+        /* --- P2: Cleanse (The Drop) --- */
         #cleanse-txt { 
-            background: var(--card); border-radius: 40px; padding: 40px; 
-            border: 1px solid rgba(255,255,255,0.8); font-size: 1.8rem; 
-            outline: none; resize: none; min-height: 200px; width: 100%; 
-            backdrop-filter: var(--glass); box-shadow: 0 40px 80px rgba(0,0,0,0.03);
+            background: var(--card); border-radius: 40px; padding: 40px; border: 2px solid #fff;
+            font-size: 1.8rem; outline: none; resize: none; width: 100%; max-width: 700px; min-height: 250px;
+            backdrop-filter: var(--glass);
         }
-        .word-particle {
-            position: fixed; pointer-events: none; font-weight: 900; font-size: 2rem;
-            color: var(--accent); white-space: nowrap; z-index: 5000;
-        }
-
-        /* 3. МКС */
-        .iss-card {
-            background: #fff; padding: 25px 50px; border-radius: 40px;
-            display: flex; gap: 40px; margin-bottom: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.02);
-        }
-        .stat-item h4 { font-size: 0.7rem; text-transform: uppercase; color: #8e8e93; letter-spacing: 1px; margin-bottom: 5px; }
-        .stat-item p { font-size: 1.4rem; font-weight: 800; }
-        #map { width: 100%; height: 500px; border-radius: 50px; border: 8px solid #fff; box-shadow: 0 50px 100px rgba(0,0,0,0.08); }
-
-        /* 4. Взгляд */
-        .vision-container {
-            background: var(--card); backdrop-filter: var(--glass); padding: 80px;
-            border-radius: 60px; border: 1px solid rgba(255,255,255,0.9);
-            transition: 0.6s var(--spring); max-width: 700px;
-        }
-        .vision-container.hide { filter: blur(80px); opacity: 0; transform: scale(0.8); }
-        #webcam-video { 
-            position: fixed; top: 40px; right: 40px; width: 140px; height: 100px; 
-            border-radius: 24px; object-fit: cover; transform: scaleX(-1);
-            border: 3px solid #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.1); display: none;
+        .particle {
+            position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8rem;
+            color: var(--accent); white-space: nowrap; z-index: 6000;
+            transition: transform 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 0.8s ease;
         }
 
-        /* 5. Атмосфера */
-        .grid-10 {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; width: 100%;
-        }
-        .ios-tile {
-            background: var(--card); backdrop-filter: blur(30px); border-radius: 35px;
-            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; transition: 0.4s var(--spring);
-            border: 1px solid rgba(255,255,255,0.5); cursor: pointer;
-        }
-        .ios-tile.on { background: #fff; transform: translateY(-10px) scale(1.05); box-shadow: 0 30px 60px rgba(0,0,0,0.1); border-color: var(--accent); }
-        .ios-tile span { font-size: 3rem; margin-bottom: 10px; transition: 0.3s; }
-        .ios-tile p { font-size: 10px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* --- P3: ISS --- */
+        .iss-bar { background: #fff; padding: 20px 40px; border-radius: 35px; display: flex; gap: 40px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .stat h6 { font-size: 10px; text-transform: uppercase; color: #8e8e93; }
+        .stat p { font-size: 1.2rem; font-weight: 800; }
+        #map { width: 100%; max-width: 900px; height: 450px; border-radius: 45px; border: 5px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
 
+        /* --- P4: Vision --- */
+        .vision-ui { background: var(--card); backdrop-filter: var(--glass); padding: 60px; border-radius: 60px; text-align: center; transition: 0.6s var(--spring); }
+        .vision-ui.locked { filter: blur(60px); opacity: 0.05; transform: scale(0.9); }
+        #webcam { position: fixed; top: 30px; left: 30px; width: 160px; height: 120px; border-radius: 20px; object-fit: cover; transform: scaleX(-1); border: 2px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 9000; display: none; }
+
+        /* --- P5: Atmosphere --- */
+        .sound-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; max-width: 900px; }
+        .tile { 
+            background: var(--card); backdrop-filter: blur(30px); border-radius: 30px; aspect-ratio: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.4);
+        }
+        .tile.on { background: #fff; transform: translateY(-8px) scale(1.05); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+        .tile span { font-size: 2.5rem; margin-bottom: 8px; }
+        .tile p { font-size: 10px; font-weight: 800; opacity: 0.5; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div class="danger" id="danger-overlay"></div>
-    <video id="webcam-video" autoplay muted playsinline></video>
+    <div class="danger" id="flash"></div>
+    <video id="webcam" autoplay muted playsinline></video>
 
     <nav>
-        <div class="nav-btn active" onclick="navTo(1, this)">Поток</div>
-        <div class="nav-btn" onclick="navTo(2, this)">Очищение</div>
-        <div class="nav-btn" onclick="navTo(3, this)">МКС</div>
-        <div class="nav-btn" onclick="navTo(4, this)">Взгляд</div>
-        <div class="nav-btn" onclick="navTo(5, this)">Атмосфера</div>
+        <div class="nav-btn active" onclick="go(1, this)">Поток</div>
+        <div class="nav-btn" onclick="go(2, this)">Очищение</div>
+        <div class="nav-btn" onclick="go(3, this)">МКС</div>
+        <div class="nav-btn" onclick="go(4, this)">Взгляд</div>
+        <div class="nav-btn" onclick="go(5, this)">Атмосфера</div>
     </nav>
 
-    <main class="stage">
-        <section id="s1" class="view active">
-            <input type="text" id="flow-input" placeholder="Начни печатать..." autocomplete="off">
+    <main>
+        <section id="v1" class="view active">
+            <input type="text" id="flow-input" placeholder="Пиши..." autocomplete="off">
         </section>
 
-        <section id="s2" class="view">
-            <textarea id="cleanse-txt" placeholder="Выгрузи всё лишнее..."></textarea>
-            <p style="margin-top:30px; font-weight:700; opacity:0.2;">TAP ENTER TO DISSOLVE</p>
+        <section id="v2" class="view">
+            <textarea id="cleanse-txt" placeholder="Что на уме?"></textarea>
+            <p style="margin-top:20px; font-size:12px; font-weight:800; opacity:0.3">ENTER TO RELEASE</p>
         </section>
 
-        <section id="s3" class="view">
-            <div class="iss-card">
-                <div class="stat-item"><h4>Velocity</h4><p id="v-vel">0 km/h</p></div>
-                <div class="stat-item"><h4>Altitude</h4><p id="v-alt">0 km</p></div>
-                <div class="stat-item"><h4>Position</h4><p id="v-pos">0, 0</p></div>
+        <section id="v3" class="view">
+            <div class="iss-bar">
+                <div class="stat"><h6>Speed</h6><p id="s-v">0 km/h</p></div>
+                <div class="stat"><h6>Alt</h6><p id="s-a">0 km</p></div>
+                <div class="stat"><h6>Lat/Lng</h6><p id="s-c">0, 0</p></div>
             </div>
             <div id="map"></div>
         </section>
 
-        <section id="s4" class="view">
-            <div class="vision-container hide" id="v-shield">
-                <h2 style="font-size: 4rem; letter-spacing: -3px; margin-bottom: 20px;">Eye Track</h2>
-                <p style="font-size: 1.5rem; line-height: 1.4; opacity: 0.6; font-weight: 500;">
-                    Конфиденциальность нового уровня. Текст доступен только при прямом взгляде в объектив. Отвод глаз мгновенно блокирует информацию.
-                </p>
-                <button onclick="initVision()" style="margin-top:40px; padding:20px 40px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-size:1.1rem; font-weight:700; cursor:pointer; box-shadow: 0 20px 40px rgba(0,122,255,0.3);">Включить сенсор</button>
+        <section id="v4" class="view">
+            <div id="v-ui" class="vision-ui locked">
+                <h2 style="font-size: 3.5rem; letter-spacing: -2px; margin-bottom: 15px;">FaceID Auth</h2>
+                <p style="opacity:0.6; font-size:1.2rem;">Смотри в камеру, чтобы прочесть этот текст.</p>
+                <button onclick="startCam()" style="margin-top:30px; padding:15px 35px; border-radius:30px; border:none; background:var(--accent); color:#fff; font-weight:700; cursor:pointer;">Включить сенсор</button>
             </div>
         </section>
 
-        <section id="s5" class="view">
-            <div class="grid-10" id="sound-grid"></div>
+        <section id="v5" class="view">
+            <div class="sound-grid" id="sounds"></div>
         </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let tab = 1;
-        const alertZone = document.getElementById('danger-overlay');
+        let current = 1;
 
-        function navTo(id, el) {
-            tab = id;
+        function go(id, el) {
+            current = id;
             document.querySelectorAll('.view, .nav-btn').forEach(n => n.classList.remove('active'));
-            document.getElementById('s'+id).classList.add('active');
+            document.getElementById('v'+id).classList.add('active');
             el.classList.add('active');
             
-            alertZone.classList.remove('flash');
+            document.getElementById('flash').classList.remove('flash');
             if(id === 3) setTimeout(() => map.invalidateSize(), 400);
-            if(id !== 4) killVision();
-            if(id !== 5) killAudio();
+            if(id !== 4) stopCam();
+            if(id !== 5) stopAudio();
         }
 
-        // --- 1. Поток ---
-        let flowTimer;
-        document.getElementById('flow-input').addEventListener('input', () => {
-            alertZone.classList.remove('flash');
-            clearTimeout(flowTimer);
-            flowTimer = setTimeout(() => { if(tab === 1) alertZone.classList.add('flash'); }, 5000);
-        });
+        // 1. FLOW
+        let fT;
+        document.getElementById('flow-input').oninput = () => {
+            document.getElementById('flash').classList.remove('flash');
+            clearTimeout(fT);
+            fT = setTimeout(() => { if(current === 1) document.getElementById('flash').classList.add('flash'); }, 5000);
+        };
 
-        // --- 2. Очищение ---
-        const cIn = document.getElementById('cleanse-txt');
-        cIn.addEventListener('keydown', (e) => {
+        // 2. CLEANSE (FIXED PHYSICS)
+        const area = document.getElementById('cleanse-txt');
+        area.onkeydown = (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const box = cIn.getBoundingClientRect();
-                const words = cIn.value.split(' ');
+                const rect = area.getBoundingClientRect();
+                const words = area.value.split(/\s+/);
                 words.forEach((w, i) => {
                     if(!w) return;
                     const p = document.createElement('div');
-                    p.className = 'word-particle';
+                    p.className = 'particle';
                     p.innerText = w;
-                    p.style.left = (box.left + Math.random() * box.width) + 'px';
-                    p.style.top = (box.top + 50) + 'px';
+                    p.style.left = (rect.left + Math.random() * rect.width) + 'px';
+                    p.style.top = (rect.top + 50) + 'px';
                     document.body.appendChild(p);
+
+                    // Анимация: Падение -> Удар -> Растворение
                     setTimeout(() => {
-                        p.style.transform = `translateY(${window.innerHeight}px) rotate(${Math.random()*60-30}deg)`;
-                        p.style.opacity = '0';
-                    }, i * 50);
-                    setTimeout(() => p.remove(), 2500);
+                        const ground = window.innerHeight - 80;
+                        p.style.transform = `translateY(${ground - rect.top - 50}px) rotate(${Math.random()*40-20}deg)`;
+                        
+                        setTimeout(() => {
+                            p.style.transform += ` translateY(-15px)`; // Отскок
+                            p.style.opacity = '0';
+                        }, 1000);
+                    }, i * 60);
+                    setTimeout(() => p.remove(), 3000);
                 });
-                cIn.value = '';
+                area.value = '';
             }
-        });
+        };
 
-        // --- 3. МКС ---
-        const map = L.map('map', {zoomControl: false, attributionControl: false}).setView([0, 0], 3);
+        // 3. ISS
+        const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        const iconISS = L.divIcon({html:'<div style="font-size:40px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1))">🛰️</div>', iconSize:[40,40], className:''});
-        const markerISS = L.marker([0, 0], {icon: iconISS}).addTo(map);
-
-        async function syncISS() {
+        const m = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:35px">🛰️</div>', iconSize:[40,40], className:''})}).addTo(map);
+        async function upISS() {
             try {
-                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-                const d = await res.json();
-                const pos = [d.latitude, d.longitude];
-                markerISS.setLatLng(pos);
-                if(tab === 3) map.panTo(pos);
-                document.getElementById('v-vel').innerText = Math.round(d.velocity).toLocaleString() + ' km/h';
-                document.getElementById('v-alt').innerText = Math.round(d.altitude) + ' km';
-                document.getElementById('v-pos').innerText = `${d.latitude.toFixed(1)}, ${d.longitude.toFixed(1)}`;
-            } catch(e) {}
+                const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+                const d = await r.json();
+                const p = [d.latitude, d.longitude];
+                m.setLatLng(p); if(current === 3) map.panTo(p);
+                document.getElementById('s-v').innerText = Math.round(d.velocity).toLocaleString() + ' km/h';
+                document.getElementById('s-a').innerText = Math.round(d.altitude) + ' km';
+                document.getElementById('s-c').innerText = `${d.latitude.toFixed(1)}, ${d.longitude.toFixed(1)}`;
+            } catch(e){}
         }
-        setInterval(syncISS, 3000); syncISS();
+        setInterval(upISS, 3000); upISS();
 
-        // --- 4. Взгляд ---
-        let visionTask = null;
-        function initVision() {
-            const v = document.getElementById('webcam-video');
+        // 4. VISION (FIXED CAMERA)
+        let trackTask;
+        async function startCam() {
+            const v = document.getElementById('webcam');
             v.style.display = 'block';
-            const tracker = new tracking.ObjectTracker('face');
-            tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
-            visionTask = tracking.track('#webcam-video', tracker, { camera: true });
-            tracker.on('track', e => {
-                const s = document.getElementById('v-shield');
-                if (e.data.length === 0) s.classList.add('hide'); else s.classList.remove('hide');
-            });
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                v.srcObject = stream;
+                const tracker = new tracking.ObjectTracker('face');
+                tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
+                trackTask = tracking.track('#webcam', tracker);
+                tracker.on('track', e => {
+                    const ui = document.getElementById('v-ui');
+                    if(e.data.length > 0) ui.classList.remove('locked'); else ui.classList.add('locked');
+                });
+            } catch(err) { alert("Камера недоступна"); }
         }
-        function killVision() {
-            if(visionTask) visionTask.stop();
-            const v = document.getElementById('webcam-video');
+        function stopCam() {
+            if(trackTask) trackTask.stop();
+            const v = document.getElementById('webcam');
             if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
             v.style.display = 'none';
         }
 
-        // --- 5. Атмосфера ---
-        const library = [
-            {n:'Rain', i:'🌧️', s:'https://cdn.freesound.org/previews/538/538808_7392610-lq.mp3'}, 
-            {n:'Fire', i:'🔥', s:'https://cdn.freesound.org/previews/339/339324_5121236-lq.mp3'}, 
-            {n:'Forest', i:'🌲', s:'https://cdn.freesound.org/previews/515/515822_10860888-lq.mp3'}, 
-            {n:'Wind', i:'🌬️', s:'https://cdn.freesound.org/previews/172/172561_3104344-lq.mp3'}, 
-            {n:'Ocean', i:'🌊', s:'https://cdn.freesound.org/previews/400/400632_5121236-lq.mp3'}, 
-            {n:'Storm', i:'⚡', s:'https://cdn.freesound.org/previews/102/102808_1250165-lq.mp3'}, 
-            {n:'Cafe', i:'☕', s:'https://cdn.freesound.org/previews/175/175366_1324915-lq.mp3'}, 
-            {n:'Train', i:'🚂', s:'https://cdn.freesound.org/previews/131/131348_1876523-lq.mp3'}, 
-            {n:'Night', i:'🌙', s:'https://cdn.freesound.org/previews/352/352514_5121236-lq.mp3'}, 
-            {n:'Keys', i:'⌨️', s:'https://cdn.freesound.org/previews/240/240979_4413156-lq.mp3'}
+        // 5. ATMOSPHERE (STABLE SOUNDS)
+        const db = [
+            {n:'Rain', i:'🌧️', s:'https://www.soundjay.com/nature/rain-01.mp3'},
+            {n:'Fire', i:'🔥', s:'https://www.soundjay.com/nature/fire-1.mp3'},
+            {n:'Forest', i:'🌲', s:'https://www.orangefreesounds.com/wp-content/uploads/2014/10/Forest-sounds-ambient.mp3'},
+            {n:'Wind', i:'🌬️', s:'https://www.soundjay.com/nature/wind-01.mp3'},
+            {n:'Waves', i:'🌊', s:'https://www.soundjay.com/nature/ocean-waves-1.mp3'},
+            {n:'Storm', i:'⚡', s:'https://www.soundjay.com/nature/thunder-4.mp3'},
+            {n:'Cafe', i:'☕', s:'https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg'},
+            {n:'Train', i:'🚂', s:'https://actions.google.com/sounds/v1/transportation/train_passing.ogg'},
+            {n:'Night', i:'🌙', s:'https://actions.google.com/sounds/v1/ambiences/crickets_chirping.ogg'},
+            {n:'Typing', i:'⌨️', s:'https://www.soundjay.com/mechanical/typewriter-key-1.mp3'}
         ];
-        const activeAudio = {};
-        const grid = document.getElementById('sound-grid');
-
-        library.forEach(item => {
-            const tile = document.createElement('div');
-            tile.className = 'ios-tile';
-            tile.innerHTML = `<span>${item.i}</span><p>${item.n}</p>`;
-            tile.onclick = () => {
-                if(activeAudio[item.n]) {
-                    activeAudio[item.n].pause(); delete activeAudio[item.n];
-                    tile.classList.remove('on');
+        const players = {};
+        db.forEach(item => {
+            const t = document.createElement('div');
+            t.className = 'tile';
+            t.innerHTML = `<span>${item.i}</span><p>${item.n}</p>`;
+            t.onclick = () => {
+                if(players[item.n]) {
+                    players[item.n].pause(); delete players[item.n];
+                    t.classList.remove('on');
                 } else {
                     const a = new Audio(item.s); a.loop = true; a.play();
-                    activeAudio[item.n] = a; tile.classList.add('on');
+                    players[item.n] = a; t.classList.add('on');
                 }
             };
-            grid.appendChild(tile);
+            document.getElementById('sounds').appendChild(t);
         });
-
-        function killAudio() {
-            Object.values(activeAudio).forEach(a => a.pause());
-            for (let k in activeAudio) delete activeAudio[k];
-            document.querySelectorAll('.ios-tile').forEach(t => t.classList.remove('on'));
+        function stopAudio() {
+            Object.values(players).forEach(p => p.pause());
+            for(let k in players) delete players[k];
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
         }
     </script>
 </body>
