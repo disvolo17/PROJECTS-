@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Core OS 26.3 | Visionary Final</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-
     <style>
         :root {
             --ios-bg: radial-gradient(circle at 50% 50%, #ffffff 0%, #cfd4da 100%);
@@ -36,19 +32,16 @@
         .view.active { display: flex; animation: ios-reveal 0.8s var(--spring); }
         @keyframes ios-reveal { 0% { opacity: 0; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
 
-        /* Flow & Cleanse */
         textarea { background: none; border: none; outline: none; resize: none; width: 100%; max-width: 800px; line-height: 1.4; }
         #flow-area { font-size: 2.5rem; font-weight: 600; height: 70vh; }
         #cleanse-txt { background: rgba(255,255,255,0.4); border-radius: 40px; padding: 40px; font-size: 1.8rem; backdrop-filter: var(--glass); border: 1px solid #fff; }
 
-        /* ISS */
         .iss-container { position: relative; width: 100%; max-width: 1000px; height: 500px; border-radius: 50px; overflow: hidden; border: 10px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
         #map { width: 100%; height: 100%; }
         .iss-hud { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.7); padding: 15px 25px; border-radius: 25px; display: flex; gap: 20px; backdrop-filter: blur(10px); }
         .stat-item h6 { font-size: 9px; color: #8e8e93; text-transform: uppercase; }
         .stat-item p { font-size: 1rem; font-weight: 700; }
 
-        /* Vision Section */
         #v-shield { 
             background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); 
             padding: 60px; border-radius: 50px; text-align: center; border: 1px solid #fff; 
@@ -57,10 +50,9 @@
         #v-shield.locked { filter: blur(80px); opacity: 0.1; transform: scale(0.9); pointer-events: none; }
         #webcam { position: fixed; top: 30px; right: 30px; width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; z-index: 9999; display: none; transform: scaleX(-1); }
 
-        /* Sounds */
         .sound-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; max-width: 900px; }
         .tile { background: rgba(255,255,255,0.3); border-radius: 30px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.5); }
-        .tile.on { background: #fff; transform: scale(1.05); border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,122,255,0.1); }
+        .tile.on { background: #fff; transform: scale(1.05); border-color: var(--accent); }
         .tile span { font-size: 2.5rem; }
         .tile p { font-size: 9px; font-weight: 800; color: #8e8e93; margin-top: 5px; }
         
@@ -81,11 +73,7 @@
 
     <main>
         <section id="v1" class="view active"><textarea id="flow-area" placeholder="Начни писать..."></textarea></section>
-        
-        <section id="v2" class="view">
-            <textarea id="cleanse-txt" placeholder="Выгрузи хаос (Enter)..."></textarea>
-        </section>
-
+        <section id="v2" class="view"><textarea id="cleanse-txt" placeholder="Выгрузи хаос (Enter)..."></textarea></section>
         <section id="v3" class="view">
             <div class="iss-container">
                 <div class="iss-hud">
@@ -95,15 +83,13 @@
                 <div id="map"></div>
             </div>
         </section>
-
         <section id="v4" class="view">
             <div id="v-shield" class="vision-shield locked">
                 <h2>Safe Mode</h2>
-                <p style="margin: 20px 0; opacity: 0.6;">Контент защищен. Включите камеру и посмотрите в нее.</p>
+                <p style="margin: 20px 0; opacity: 0.6;">Контент защищен. Включите камеру для доступа.</p>
                 <button id="v-btn" onclick="toggleVision()" style="padding: 15px 35px; border-radius: 30px; border: none; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer;">Включить камеру</button>
             </div>
         </section>
-
         <section id="v5" class="view"><div class="sound-grid" id="audio-grid"></div></section>
     </main>
 
@@ -120,14 +106,12 @@
             if(id !== 5) silenceAll();
         }
 
-        // --- Cleanse Logic ---
         const cleanseInput = document.getElementById('cleanse-txt');
         cleanseInput.onkeydown = (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 const rect = cleanseInput.getBoundingClientRect();
-                const text = cleanseInput.value;
-                [...text].forEach(char => {
+                [...cleanseInput.value].forEach(char => {
                     if(char === ' ' || char === '\n') return;
                     const el = document.createElement('div');
                     el.className = 'lux-particle'; el.innerText = char;
@@ -144,7 +128,6 @@
             }
         };
 
-        // --- ISS Logic ---
         const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         const issMarker = L.marker([0,0], {icon: L.divIcon({html:'🛰️', className:'', iconSize:[40,40]})}).addTo(map);
@@ -160,46 +143,28 @@
         }
         setInterval(updateISS, 4000); updateISS();
 
-        // --- Vision (Face Logic) ---
         let vStream = null;
-        let isDetecting = false;
-
         async function toggleVision() {
             const btn = document.getElementById('v-btn');
             const video = document.getElementById('webcam');
             const shield = document.getElementById('v-shield');
-
             try {
                 vStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = vStream;
                 video.style.display = 'block';
-                btn.innerText = "Сканирование...";
-                
-                // Простая эмуляция или подключение TensorFlow
-                isDetecting = true;
-                const checkFace = () => {
-                    if(!isDetecting) return;
-                    // Для теста: если камера включена — считаем что лицо есть
-                    // На GitHub Pages это самый надежный способ проверки доступа
-                    shield.classList.remove('locked');
-                    requestAnimationFrame(checkFace);
-                };
-                checkFace();
+                shield.classList.remove('locked');
+                btn.innerText = "Доступ разрешен";
             } catch (err) {
-                btn.innerText = "Нет доступа к камере";
-                console.error(err);
+                btn.innerText = "Ошибка камеры";
             }
         }
-
         function stopVision() {
-            isDetecting = false;
             if(vStream) vStream.getTracks().forEach(t => t.stop());
             document.getElementById('webcam').style.display = 'none';
             document.getElementById('v-shield').classList.add('locked');
             document.getElementById('v-btn').innerText = "Включить камеру";
         }
 
-        // --- Atmosphere ---
         const sounds = [
             {n:'Rain', i:'🌧️', f:'rain.mp3'}, {n:'Fire', i:'🔥', f:'fire.mp3'},
             {n:'Forest', i:'🌲', f:'forest.mp3'}, {n:'Wind', i:'🌬️', f:'wind.mp3'},
