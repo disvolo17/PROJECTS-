@@ -3,248 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS Light | Живое Стекло</title>
+    <title>Core OS 26.3 | Visionary</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --sf-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-            --bg: #e2e5ff; /* Нежно-голубой/фиолетовый фон */
-            --text: #1d1d1f;
-            --accent: #ff3b30;
-            --glass: blur(40px) saturate(200%);
-            --card-bg: rgba(255, 255, 255, 0.4);
-            --shadow: 0 20px 50px rgba(0,0,0,0.05);
+            --ios-bg: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            --glass: blur(80px) saturate(210%);
+            --card: rgba(255, 255, 255, 0.5);
+            --accent: #007aff;
+            --text: #000;
+            --spring: cubic-bezier(0.4, 1.1, 0.3, 1.1); /* Фирменная пружина iOS */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            background: linear-gradient(135deg, #e2e5ff 0%, #ffe2f0 100%);
-            color: var(--text);
-            font-family: var(--sf-font);
+            background: var(--ios-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
             height: 100vh;
             overflow: hidden;
-            transition: background 1s ease;
+            color: var(--text);
         }
 
-        /* --- Apple Navigation --- */
-        .nav-bar {
+        /* --- Dynamic Tab Bar --- */
+        nav {
             position: fixed;
-            top: 25px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            background: var(--card-bg);
+            background: var(--card);
             backdrop-filter: var(--glass);
-            padding: 6px;
-            border-radius: 40px;
+            padding: 8px;
+            border-radius: 44px;
+            border: 0.5px solid rgba(255,255,255,0.8);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
             z-index: 1000;
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: var(--shadow);
         }
 
-        .nav-item {
-            padding: 12px 24px;
-            border-radius: 35px;
+        .nav-btn {
+            padding: 12px 28px;
+            border-radius: 36px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: var(--text);
-            opacity: 0.6;
+            transition: 0.4s var(--spring);
+            opacity: 0.4;
         }
 
-        .nav-item.active { opacity: 1; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-        /* --- Layout --- */
-        .container { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .app-section { display: none; width: 100%; max-width: 1100px; animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); flex-direction: column; align-items: center; }
-        .app-section.active { display: flex; }
+        /* --- Sections & Animations --- */
+        .stage { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        
+        .view { 
+            display: none; width: 100%; max-width: 1000px; padding: 40px;
+            flex-direction: column; align-items: center; text-align: center;
+        }
 
-        @keyframes slideIn { from { opacity: 0; transform: scale(0.9) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        /* Анимация появления контента */
+        .view.active { 
+            display: flex; 
+            animation: ios-slide 0.7s var(--spring) forwards;
+        }
 
-        /* 1. Flow (Deep Pulse) */
-        #focus-input { background: none; border: none; color: var(--text); font-size: clamp(2rem, 8vw, 5rem); font-weight: 800; text-align: center; outline: none; width: 100%; }
-        .pulse-overlay { position: fixed; inset: 0; background: radial-gradient(circle, rgba(255,59,48,0.15) 0%, transparent 70%); opacity: 0; pointer-events: none; transition: 1.5s; z-index: -1; }
+        @keyframes ios-slide {
+            0% { opacity: 0; transform: translateY(50px) scale(0.9); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
 
-        /* 2. Cleanse (Rainbow Fade) */
-        .cleanse-card { width: 100%; max-width: 600px; position: relative; background: var(--card-bg); backdrop-filter: var(--glass); padding: 30px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow); }
-        #cleanse-input { width: 100%; background: none; border: none; font-size: 1.4rem; color: var(--text); outline: none; resize: none; min-height: 120px; font-weight: 500; }
-        .ghost-particle { position: absolute; pointer-events: none; transition: 3s cubic-bezier(0.1, 0.9, 0.2, 1); font-weight: 600; background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759, #007aff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        /* 1. Поток */
+        #flow-input { background: none; border: none; font-size: 5rem; font-weight: 900; outline: none; width: 100%; text-align: center; letter-spacing: -2px; }
+        .danger { position: fixed; inset: 0; background: rgba(255,0,0,0.05); opacity: 0; transition: 2s; pointer-events: none; }
 
-        /* 3. Orbit (Live Map) */
-        #map { width: 100%; height: 500px; border-radius: 35px; background: #eee; box-shadow: var(--shadow); border: 8px solid #fff; }
-        .orbit-stats { margin-top: 20px; background: #fff; padding: 10px 25px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; box-shadow: var(--shadow); color: var(--accent); }
+        /* 2. Очищение (Физика падения) */
+        .cleanse-container { width: 100%; max-width: 600px; position: relative; height: 300px; display: flex; flex-direction: column; }
+        #cleanse-txt { 
+            background: var(--card); border-radius: 30px; padding: 30px; border: none; 
+            font-size: 1.5rem; outline: none; resize: none; min-height: 150px; backdrop-filter: var(--glass);
+        }
+        .word-particle {
+            position: absolute; pointer-events: none; font-weight: 700; font-size: 1.2rem;
+            color: var(--accent); white-space: nowrap; transition: transform 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
 
-        /* 4. Vision (Smart Gaze) */
-        .vision-text { max-width: 700px; background: var(--card-bg); backdrop-filter: var(--glass); padding: 50px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow); transition: 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .vision-text.blurred { filter: blur(40px); opacity: 0.2; transform: scale(0.95); }
+        /* 3. Орбита */
+        #map { width: 100%; height: 400px; border-radius: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 4px solid #fff; }
 
-        /* 5. Atmosphere (20 Sounds) */
-        .sound-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; max-width: 800px; }
-        .sound-btn { background: var(--card-bg); backdrop-filter: var(--glass); border: 1px solid rgba(255,255,255,0.4); border-radius: 25px; padding: 20px; cursor: pointer; transition: 0.4s; text-align: center; box-shadow: var(--shadow); }
-        .sound-btn.active { background: #fff; transform: scale(1.08); border-color: var(--accent); }
-        .sound-btn span { font-size: 1.8rem; display: block; margin-bottom: 8px; }
-        .sound-btn label { font-size: 10px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 1px; }
+        /* 4. Взгляд */
+        .vision-shield { 
+            background: var(--card); backdrop-filter: var(--glass); padding: 60px; border-radius: 50px;
+            transition: 0.8s var(--spring);
+        }
+        .vision-shield.hide { filter: blur(60px); opacity: 0.1; transform: scale(0.95); }
 
+        /* 5. Атмосфера */
+        .sound-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .sound-tile {
+            background: var(--card); backdrop-filter: blur(20px); border-radius: 28px; padding: 20px;
+            width: 140px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.4);
+        }
+        .sound-tile.on { background: #fff; transform: translateY(-10px) scale(1.05); border-color: var(--accent); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .sound-tile span { font-size: 2.2rem; margin-bottom: 8px; }
+        .sound-tile p { font-size: 10px; font-weight: 800; opacity: 0.5; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div class="pulse-overlay" id="p-overlay"></div>
+    <div class="danger" id="danger-overlay"></div>
 
-    <nav class="nav-bar">
-        <div class="nav-item active" onclick="nav(1, this)">Поток</div>
-        <div class="nav-item" onclick="nav(2, this)">Очищение</div>
-        <div class="nav-item" onclick="nav(3, this)">Орбита</div>
-        <div class="nav-item" onclick="nav(4, this)">Взгляд</div>
-        <div class="nav-item" onclick="nav(5, this)">Атмосфера</div>
+    <nav>
+        <div class="nav-btn active" onclick="show(1, this)">Поток</div>
+        <div class="nav-btn" onclick="show(2, this)">Очищение</div>
+        <div class="nav-btn" onclick="show(3, this)">Орбита</div>
+        <div class="nav-btn" onclick="show(4, this)">Взгляд</div>
+        <div class="nav-btn" onclick="show(5, this)">Атмосфера</div>
     </nav>
 
-    <main class="container">
-        <section id="s1" class="app-section active">
-            <input type="text" id="focus-input" placeholder="Начни печатать мысль..." autocomplete="off">
-            <p style="opacity:0.4; margin-top:40px; font-weight: 600;">Не останавливайся. Фокус — это движение.</p>
+    <main class="stage">
+        <section id="p1" class="view active">
+            <input type="text" id="flow-input" placeholder="Think..." autocomplete="off">
         </section>
 
-        <section id="s2" class="app-section">
-            <div class="cleanse-card" id="c-card">
-                <textarea id="cleanse-input" placeholder="О чем ты думаешь прямо сейчас?"></textarea>
-                <p style="font-size: 11px; opacity: 0.4; margin-top: 15px; font-weight: 700;">ENTER — ЧТОБЫ ОТПУСТИТЬ</p>
+        <section id="p2" class="view">
+            <div class="cleanse-container" id="c-box">
+                <textarea id="cleanse-txt" placeholder="О чем молчишь?"></textarea>
+                <p style="font-size: 11px; font-weight: 800; margin-top: 20px; opacity: 0.3;">TAP ENTER TO RELEASE</p>
             </div>
         </section>
 
-        <section id="s3" class="app-section">
+        <section id="p3" class="view">
             <div id="map"></div>
-            <div class="orbit-stats" id="iss-info">Синхронизация с МКС...</div>
         </section>
 
-        <section id="s4" class="app-section">
-            <div class="vision-text" id="v-text">
-                <h2 style="font-size: 3.5rem; margin-bottom: 25px; letter-spacing: -2px;">Глубокое чтение</h2>
-                <p style="font-size: 1.5rem; line-height: 1.4; font-weight: 500; opacity: 0.8;">Apple учит нас: детали важнее всего. Пока твой курсор здесь — мир ясен. Как только ты уводишь взгляд (курсор), контент ускользает. Это тренировка осознанного присутствия.</p>
+        <section id="p4" class="view">
+            <div class="vision-shield hide" id="v-shield">
+                <h2 style="font-size: 3rem; margin-bottom: 20px;">Privacy Focus</h2>
+                <p style="font-size: 1.3rem; opacity: 0.7; line-height: 1.5;">Это пространство становится видимым только при полной концентрации. Уведи курсор или смени вкладку — и контент превратится в чистый свет.</p>
             </div>
         </section>
 
-        <section id="s5" class="app-section">
-            <div class="sound-grid" id="sound-grid">
-                </div>
+        <section id="p5" class="view">
+            <div class="sound-grid" id="grid-box"></div>
         </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let curApp = 1;
+        let currentTab = 1;
         const sounds = [
-            {n:'Дождь', i:'🌧️', t:'rain'}, {n:'Ветер', i:'🌬️', t:'wind'}, {n:'Костер', i:'🔥', t:'fire'}, {n:'Кафе', i:'☕', t:'cafe'},
-            {n:'Лес', i:'🌲', t:'forest'}, {n:'Океан', i:'🌊', t:'wave'}, {n:'Гром', i:'⚡', t:'thunder'}, {n:'Космос', i:'🪐', t:'space'},
-            {n:'Библиотека', i:'📚', t:'lib'}, {n:'Дзен', i:'🧘', t:'zen'}, {n:'Поезд', i:'🚂', t:'train'}, {n:'Город', i:'🌆', t:'city'},
-            {n:'Самолет', i:'✈️', t:'plane'}, {n:'Стрекозы', i:'🦗', t:'grass'}, {n:'Клавиатура', i:'⌨️', t:'key'}, {n:'Птицы', i:'🐦', t:'birds'},
-            {n:'Винил', i:'📻', t:'vinyl'}, {n:'Подводная', i:'🫧', t:'sub'}, {n:'Вечер', i:'🌙', t:'night'}, {n:'Сон', i:'💤', t:'sleep'}
+            {n:'Rain', i:'🌧️'}, {n:'Wind', i:'🌬️'}, {n:'Fire', i:'🔥'}, {n:'Forest', i:'🌲'},
+            {n:'Waves', i:'🌊'}, {n:'Thunder', i:'⚡'}, {n:'Cafe', i:'☕'}, {n:'Space', i:'🪐'},
+            {n:'Train', i:'🚂'}, {n:'Zen', i:'🧘'}, {n:'Night', i:'🌙'}, {n:'City', i:'🌆'},
+            {n:'Keys', i:'⌨️'}, {n:'Birds', i:'🐦'}, {n:'Radio', i:'📻'}, {n:'Drop', i:'🫧'},
+            {n:'Flight', i:'✈️'}, {n:'Library', i:'📚'}, {n:'Clock', i:'⏰'}, {n:'Sleep', i:'💤'}
         ];
 
-        function nav(id, el) {
-            curApp = id;
-            document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('s' + id).classList.add('active');
+        function show(id, el) {
+            currentTab = id;
+            document.querySelectorAll('.view, .nav-btn').forEach(x => x.classList.remove('active'));
+            document.getElementById('p'+id).classList.add('active');
             el.classList.add('active');
-            if(id === 3) setTimeout(() => map.invalidateSize(), 100);
-            resetStates();
+            if(id === 3) setTimeout(() => map.invalidateSize(), 300);
+            stopGlobalEffects();
         }
 
-        function resetStates() {
-            document.getElementById('p-overlay').style.opacity = '0';
-            clearTimeout(flowTimer);
-            if(curApp !== 5) stopAllSounds();
+        function stopGlobalEffects() {
+            document.getElementById('danger-overlay').style.opacity = '0';
+            if(currentTab !== 5) stopAudio();
         }
 
         // --- 1. Flow ---
-        let flowTimer;
-        document.getElementById('focus-input').addEventListener('input', () => {
-            if(curApp !== 1) return;
-            document.getElementById('p-overlay').style.opacity = '0';
-            clearTimeout(flowTimer);
-            flowTimer = setTimeout(() => { if(curApp === 1) document.getElementById('p-overlay').style.opacity = '1'; }, 2000);
+        let flowT;
+        document.getElementById('flow-input').addEventListener('input', () => {
+            document.getElementById('danger-overlay').style.opacity = '0';
+            clearTimeout(flowT);
+            flowT = setTimeout(() => { if(currentTab === 1) document.getElementById('danger-overlay').style.opacity = '1'; }, 2500);
         });
 
-        // --- 2. Cleanse (Rainbow Fade) ---
-        const cIn = document.getElementById('cleanse-input');
-        cIn.addEventListener('keydown', (e) => {
+        // --- 2. Cleanse (Gravity Physics) ---
+        const cTxt = document.getElementById('cleanse-txt');
+        cTxt.addEventListener('keydown', (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const val = cIn.value; if(!val) return;
-                const ghost = document.createElement('div');
-                ghost.className = 'ghost-particle';
-                ghost.innerText = val;
-                document.getElementById('c-card').appendChild(ghost);
-                setTimeout(() => {
-                    ghost.style.transform = `translate(${Math.random()*200-100}px, -200px) scale(1.5) rotate(${Math.random()*40-20}deg)`;
-                    ghost.style.opacity = '0';
-                    ghost.style.filter = 'blur(20px)';
-                }, 10);
-                setTimeout(() => ghost.remove(), 3000);
-                cIn.value = '';
+                const words = cTxt.value.split(' ');
+                words.forEach((w, i) => {
+                    if(!w) return;
+                    const span = document.createElement('div');
+                    span.className = 'word-particle';
+                    span.innerText = w;
+                    span.style.left = (Math.random() * 80 + 10) + '%';
+                    span.style.top = '100px';
+                    document.getElementById('c-box').appendChild(span);
+                    
+                    // Эмуляция падения и удара
+                    setTimeout(() => {
+                        const fallDist = window.innerHeight - 350; // Расстояние до низа экрана
+                        span.style.transform = `translateY(${fallDist}px) rotate(${Math.random()*40-20}deg)`;
+                        span.style.opacity = '0';
+                        span.style.filter = 'blur(10px)';
+                    }, i * 50);
+                    setTimeout(() => span.remove(), 2500);
+                });
+                cTxt.value = '';
             }
         });
 
-        // --- 3. Orbit (Live Map) ---
-        const map = L.map('map').setView([0, 0], 3);
+        // --- 3. Orbit (Map) ---
+        const map = L.map('map', {zoomControl: false}).setView([0, 0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        const issIcon = L.divIcon({ html: '🚀', className: 'iss-emoji', iconSize: [30, 30] });
-        const marker = L.marker([0, 0], {icon: issIcon}).addTo(map);
-
+        const marker = L.marker([0, 0], {icon: L.divIcon({html:'🚀', className:'iss', iconSize:[30,30]})}).addTo(map);
         async function updateISS() {
             try {
-                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-                const d = await res.json();
-                const pos = [d.latitude, d.longitude];
-                marker.setLatLng(pos);
-                if(curApp === 3) map.panTo(pos);
-                document.getElementById('iss-info').innerText = `МКС: ${d.latitude.toFixed(2)}°, ${d.longitude.toFixed(2)}° | СКОРОСТЬ: ${Math.round(d.velocity)} км/ч`;
+                const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+                const d = await r.json();
+                marker.setLatLng([d.latitude, d.longitude]);
+                if(currentTab === 3) map.panTo([d.latitude, d.longitude]);
             } catch(e) {}
         }
         setInterval(updateISS, 5000); updateISS();
 
-        // --- 4. Vision (Smart Gaze) ---
-        const vBox = document.getElementById('v-text');
-        vBox.addEventListener('mouseenter', () => vBox.classList.remove('blurred'));
-        vBox.addEventListener('mouseleave', () => vBox.classList.add('blurred'));
-        window.addEventListener('blur', () => vBox.classList.add('blurred'));
+        // --- 4. Vision ---
+        const vs = document.getElementById('v-shield');
+        vs.addEventListener('mouseenter', () => vs.classList.remove('hide'));
+        vs.addEventListener('mouseleave', () => vs.classList.add('hide'));
 
-        // --- 5. Atmosphere (20 Sounds) ---
-        const grid = document.getElementById('sound-grid');
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // --- 5. Atmosphere ---
+        const grid = document.getElementById('grid-box');
+        const aCtx = new (window.AudioContext || window.webkitAudioContext)();
         const activeNodes = {};
 
         sounds.forEach(s => {
-            const btn = document.createElement('div');
-            btn.className = 'sound-btn';
-            btn.innerHTML = `<span>${s.i}</span><label>${s.n}</label>`;
-            btn.onclick = () => toggleSound(s.t, btn);
-            grid.appendChild(btn);
+            const tile = document.createElement('div');
+            tile.className = 'sound-tile';
+            tile.innerHTML = `<span>${s.i}</span><p>${s.n}</p>`;
+            tile.onclick = () => {
+                if(aCtx.state === 'suspended') aCtx.resume();
+                if(activeNodes[s.n]) {
+                    activeNodes[s.n].stop(); delete activeNodes[s.n];
+                    tile.classList.remove('on');
+                } else {
+                    const osc = aCtx.createOscillator();
+                    const g = aCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.value = 120 + Math.random()*200;
+                    g.gain.value = 0.01;
+                    osc.connect(g); g.connect(aCtx.destination);
+                    osc.start(); activeNodes[s.n] = osc;
+                    tile.classList.add('on');
+                }
+            };
+            grid.appendChild(tile);
         });
 
-        function toggleSound(type, el) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (activeNodes[type]) {
-                activeNodes[type].stop(); delete activeNodes[type];
-                el.classList.remove('active');
-            } else {
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                // Имитация звука: в реале тут должны быть ссылки на мелкие .mp3
-                // Но для кода сделаем "белый шум" разной частоты
-                osc.type = 'sine'; osc.frequency.value = Math.random()*200+100;
-                g.gain.value = 0.02;
-                osc.connect(g); g.connect(audioCtx.destination);
-                osc.start(); activeNodes[type] = osc;
-                el.classList.add('active');
-            }
-        }
-        function stopAllSounds() {
+        function stopAudio() {
             Object.values(activeNodes).forEach(n => n.stop());
-            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.sound-tile').forEach(t => t.classList.remove('on'));
         }
     </script>
 </body>
