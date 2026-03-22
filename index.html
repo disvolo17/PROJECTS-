@@ -3,262 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Visionary</title>
+    <title>Core OS 26.3 | Visionary Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/tracking-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/data/face-min.js"></script>
+    
     <style>
         :root {
-            --ios-bg: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
-            --glass: blur(80px) saturate(210%);
-            --card: rgba(255, 255, 255, 0.5);
+            --ios-bg: radial-gradient(circle at top right, #ffffff 0%, #f0f2f5 100%);
+            --glass: blur(100px) saturate(250%) brightness(1.1);
+            --card: rgba(255, 255, 255, 0.4);
             --accent: #007aff;
-            --text: #000;
-            --spring: cubic-bezier(0.4, 1.1, 0.3, 1.1); /* Фирменная пружина iOS */
+            --text-main: #1d1d1f;
+            --spring: cubic-bezier(0.2, 1, 0.2, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
             background: var(--ios-bg);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
             height: 100vh;
             overflow: hidden;
-            color: var(--text);
+            color: var(--text-main);
         }
 
-        /* --- Dynamic Tab Bar --- */
+        /* --- Global Background Flash --- */
+        .danger { 
+            position: fixed; inset: 0; 
+            background: rgba(255, 59, 48, 0); 
+            pointer-events: none; z-index: 9999; 
+            transition: background 0.3s ease;
+        }
+        .danger.flash { animation: alert-pulse 0.4s infinite alternate; }
+        @keyframes alert-pulse { 0% { background: rgba(255, 59, 48, 0); } 100% { background: rgba(255, 59, 48, 0.6); } }
+
+        /* --- iOS 26.3 Navigation Dock --- */
         nav {
             position: fixed;
             bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            background: var(--card);
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: var(--glass);
-            padding: 8px;
-            border-radius: 44px;
-            border: 0.5px solid rgba(255,255,255,0.8);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
-            z-index: 1000;
+            padding: 10px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.05);
+            z-index: 2000;
         }
 
         .nav-btn {
-            padding: 12px 28px;
-            border-radius: 36px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 14px 24px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
             cursor: pointer;
-            transition: 0.4s var(--spring);
-            opacity: 0.4;
+            transition: 0.5s var(--spring);
+            opacity: 0.3;
+            color: var(--text-main);
         }
 
-        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .nav-btn.active { 
+            opacity: 1; 
+            background: #fff; 
+            transform: scale(1.05) translateY(-2px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.03);
+        }
 
-        /* --- Sections & Animations --- */
-        .stage { height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        /* --- Layout --- */
+        .stage { height: 100vh; display: flex; align-items: center; justify-content: center; width: 100%; }
         
         .view { 
-            display: none; width: 100%; max-width: 1000px; padding: 40px;
-            flex-direction: column; align-items: center; text-align: center;
+            display: none; width: 100%; max-width: 1100px; padding: 40px;
+            flex-direction: column; align-items: center;
         }
+        .view.active { display: flex; animation: ios-reveal 0.8s var(--spring) forwards; }
 
-        /* Анимация появления контента */
-        .view.active { 
-            display: flex; 
-            animation: ios-slide 0.7s var(--spring) forwards;
-        }
-
-        @keyframes ios-slide {
-            0% { opacity: 0; transform: translateY(50px) scale(0.9); filter: blur(10px); }
-            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        @keyframes ios-reveal {
+            0% { opacity: 0; transform: scale(0.9) translateY(40px); filter: blur(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
         /* 1. Поток */
-        #flow-input { background: none; border: none; font-size: 5rem; font-weight: 900; outline: none; width: 100%; text-align: center; letter-spacing: -2px; }
-        .danger { position: fixed; inset: 0; background: rgba(255,0,0,0.05); opacity: 0; transition: 2s; pointer-events: none; }
+        #flow-input { 
+            background: none; border: none; font-size: 6rem; font-weight: 800; 
+            outline: none; width: 100%; text-align: center; letter-spacing: -4px;
+            color: var(--text-main);
+        }
 
-        /* 2. Очищение (Физика падения) */
-        .cleanse-container { width: 100%; max-width: 600px; position: relative; height: 300px; display: flex; flex-direction: column; }
+        /* 2. Очищение */
         #cleanse-txt { 
-            background: var(--card); border-radius: 30px; padding: 30px; border: none; 
-            font-size: 1.5rem; outline: none; resize: none; min-height: 150px; backdrop-filter: var(--glass);
+            background: var(--card); border-radius: 40px; padding: 40px; 
+            border: 1px solid rgba(255,255,255,0.8); font-size: 1.8rem; 
+            outline: none; resize: none; min-height: 200px; width: 100%; 
+            backdrop-filter: var(--glass); box-shadow: 0 40px 80px rgba(0,0,0,0.03);
         }
         .word-particle {
-            position: absolute; pointer-events: none; font-weight: 700; font-size: 1.2rem;
-            color: var(--accent); white-space: nowrap; transition: transform 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            position: fixed; pointer-events: none; font-weight: 900; font-size: 2rem;
+            color: var(--accent); white-space: nowrap; z-index: 5000;
         }
 
-        /* 3. Орбита */
-        #map { width: 100%; height: 400px; border-radius: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 4px solid #fff; }
+        /* 3. МКС */
+        .iss-card {
+            background: #fff; padding: 25px 50px; border-radius: 40px;
+            display: flex; gap: 40px; margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.02);
+        }
+        .stat-item h4 { font-size: 0.7rem; text-transform: uppercase; color: #8e8e93; letter-spacing: 1px; margin-bottom: 5px; }
+        .stat-item p { font-size: 1.4rem; font-weight: 800; }
+        #map { width: 100%; height: 500px; border-radius: 50px; border: 8px solid #fff; box-shadow: 0 50px 100px rgba(0,0,0,0.08); }
 
         /* 4. Взгляд */
-        .vision-shield { 
-            background: var(--card); backdrop-filter: var(--glass); padding: 60px; border-radius: 50px;
-            transition: 0.8s var(--spring);
+        .vision-container {
+            background: var(--card); backdrop-filter: var(--glass); padding: 80px;
+            border-radius: 60px; border: 1px solid rgba(255,255,255,0.9);
+            transition: 0.6s var(--spring); max-width: 700px;
         }
-        .vision-shield.hide { filter: blur(60px); opacity: 0.1; transform: scale(0.95); }
+        .vision-container.hide { filter: blur(80px); opacity: 0; transform: scale(0.8); }
+        #webcam-video { 
+            position: fixed; top: 40px; right: 40px; width: 140px; height: 100px; 
+            border-radius: 24px; object-fit: cover; transform: scaleX(-1);
+            border: 3px solid #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.1); display: none;
+        }
 
         /* 5. Атмосфера */
-        .sound-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .sound-tile {
-            background: var(--card); backdrop-filter: blur(20px); border-radius: 28px; padding: 20px;
-            width: 140px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.4);
+        .grid-10 {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; width: 100%;
         }
-        .sound-tile.on { background: #fff; transform: translateY(-10px) scale(1.05); border-color: var(--accent); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .sound-tile span { font-size: 2.2rem; margin-bottom: 8px; }
-        .sound-tile p { font-size: 10px; font-weight: 800; opacity: 0.5; text-transform: uppercase; }
+        .ios-tile {
+            background: var(--card); backdrop-filter: blur(30px); border-radius: 35px;
+            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; transition: 0.4s var(--spring);
+            border: 1px solid rgba(255,255,255,0.5); cursor: pointer;
+        }
+        .ios-tile.on { background: #fff; transform: translateY(-10px) scale(1.05); box-shadow: 0 30px 60px rgba(0,0,0,0.1); border-color: var(--accent); }
+        .ios-tile span { font-size: 3rem; margin-bottom: 10px; transition: 0.3s; }
+        .ios-tile p { font-size: 10px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; }
+
     </style>
 </head>
 <body>
 
     <div class="danger" id="danger-overlay"></div>
+    <video id="webcam-video" autoplay muted playsinline></video>
 
     <nav>
-        <div class="nav-btn active" onclick="show(1, this)">Поток</div>
-        <div class="nav-btn" onclick="show(2, this)">Очищение</div>
-        <div class="nav-btn" onclick="show(3, this)">Орбита</div>
-        <div class="nav-btn" onclick="show(4, this)">Взгляд</div>
-        <div class="nav-btn" onclick="show(5, this)">Атмосфера</div>
+        <div class="nav-btn active" onclick="navTo(1, this)">Поток</div>
+        <div class="nav-btn" onclick="navTo(2, this)">Очищение</div>
+        <div class="nav-btn" onclick="navTo(3, this)">МКС</div>
+        <div class="nav-btn" onclick="navTo(4, this)">Взгляд</div>
+        <div class="nav-btn" onclick="navTo(5, this)">Атмосфера</div>
     </nav>
 
     <main class="stage">
-        <section id="p1" class="view active">
-            <input type="text" id="flow-input" placeholder="Think..." autocomplete="off">
+        <section id="s1" class="view active">
+            <input type="text" id="flow-input" placeholder="Начни печатать..." autocomplete="off">
         </section>
 
-        <section id="p2" class="view">
-            <div class="cleanse-container" id="c-box">
-                <textarea id="cleanse-txt" placeholder="О чем молчишь?"></textarea>
-                <p style="font-size: 11px; font-weight: 800; margin-top: 20px; opacity: 0.3;">TAP ENTER TO RELEASE</p>
+        <section id="s2" class="view">
+            <textarea id="cleanse-txt" placeholder="Выгрузи всё лишнее..."></textarea>
+            <p style="margin-top:30px; font-weight:700; opacity:0.2;">TAP ENTER TO DISSOLVE</p>
+        </section>
+
+        <section id="s3" class="view">
+            <div class="iss-card">
+                <div class="stat-item"><h4>Velocity</h4><p id="v-vel">0 km/h</p></div>
+                <div class="stat-item"><h4>Altitude</h4><p id="v-alt">0 km</p></div>
+                <div class="stat-item"><h4>Position</h4><p id="v-pos">0, 0</p></div>
             </div>
-        </section>
-
-        <section id="p3" class="view">
             <div id="map"></div>
         </section>
 
-        <section id="p4" class="view">
-            <div class="vision-shield hide" id="v-shield">
-                <h2 style="font-size: 3rem; margin-bottom: 20px;">Privacy Focus</h2>
-                <p style="font-size: 1.3rem; opacity: 0.7; line-height: 1.5;">Это пространство становится видимым только при полной концентрации. Уведи курсор или смени вкладку — и контент превратится в чистый свет.</p>
+        <section id="s4" class="view">
+            <div class="vision-container hide" id="v-shield">
+                <h2 style="font-size: 4rem; letter-spacing: -3px; margin-bottom: 20px;">Eye Track</h2>
+                <p style="font-size: 1.5rem; line-height: 1.4; opacity: 0.6; font-weight: 500;">
+                    Конфиденциальность нового уровня. Текст доступен только при прямом взгляде в объектив. Отвод глаз мгновенно блокирует информацию.
+                </p>
+                <button onclick="initVision()" style="margin-top:40px; padding:20px 40px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-size:1.1rem; font-weight:700; cursor:pointer; box-shadow: 0 20px 40px rgba(0,122,255,0.3);">Включить сенсор</button>
             </div>
         </section>
 
-        <section id="p5" class="view">
-            <div class="sound-grid" id="grid-box"></div>
+        <section id="s5" class="view">
+            <div class="grid-10" id="sound-grid"></div>
         </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let currentTab = 1;
-        const sounds = [
-            {n:'Rain', i:'🌧️'}, {n:'Wind', i:'🌬️'}, {n:'Fire', i:'🔥'}, {n:'Forest', i:'🌲'},
-            {n:'Waves', i:'🌊'}, {n:'Thunder', i:'⚡'}, {n:'Cafe', i:'☕'}, {n:'Space', i:'🪐'},
-            {n:'Train', i:'🚂'}, {n:'Zen', i:'🧘'}, {n:'Night', i:'🌙'}, {n:'City', i:'🌆'},
-            {n:'Keys', i:'⌨️'}, {n:'Birds', i:'🐦'}, {n:'Radio', i:'📻'}, {n:'Drop', i:'🫧'},
-            {n:'Flight', i:'✈️'}, {n:'Library', i:'📚'}, {n:'Clock', i:'⏰'}, {n:'Sleep', i:'💤'}
-        ];
+        let tab = 1;
+        const alertZone = document.getElementById('danger-overlay');
 
-        function show(id, el) {
-            currentTab = id;
-            document.querySelectorAll('.view, .nav-btn').forEach(x => x.classList.remove('active'));
-            document.getElementById('p'+id).classList.add('active');
+        function navTo(id, el) {
+            tab = id;
+            document.querySelectorAll('.view, .nav-btn').forEach(n => n.classList.remove('active'));
+            document.getElementById('s'+id).classList.add('active');
             el.classList.add('active');
-            if(id === 3) setTimeout(() => map.invalidateSize(), 300);
-            stopGlobalEffects();
+            
+            alertZone.classList.remove('flash');
+            if(id === 3) setTimeout(() => map.invalidateSize(), 400);
+            if(id !== 4) killVision();
+            if(id !== 5) killAudio();
         }
 
-        function stopGlobalEffects() {
-            document.getElementById('danger-overlay').style.opacity = '0';
-            if(currentTab !== 5) stopAudio();
-        }
-
-        // --- 1. Flow ---
-        let flowT;
+        // --- 1. Поток ---
+        let flowTimer;
         document.getElementById('flow-input').addEventListener('input', () => {
-            document.getElementById('danger-overlay').style.opacity = '0';
-            clearTimeout(flowT);
-            flowT = setTimeout(() => { if(currentTab === 1) document.getElementById('danger-overlay').style.opacity = '1'; }, 2500);
+            alertZone.classList.remove('flash');
+            clearTimeout(flowTimer);
+            flowTimer = setTimeout(() => { if(tab === 1) alertZone.classList.add('flash'); }, 5000);
         });
 
-        // --- 2. Cleanse (Gravity Physics) ---
-        const cTxt = document.getElementById('cleanse-txt');
-        cTxt.addEventListener('keydown', (e) => {
+        // --- 2. Очищение ---
+        const cIn = document.getElementById('cleanse-txt');
+        cIn.addEventListener('keydown', (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const words = cTxt.value.split(' ');
+                const box = cIn.getBoundingClientRect();
+                const words = cIn.value.split(' ');
                 words.forEach((w, i) => {
                     if(!w) return;
-                    const span = document.createElement('div');
-                    span.className = 'word-particle';
-                    span.innerText = w;
-                    span.style.left = (Math.random() * 80 + 10) + '%';
-                    span.style.top = '100px';
-                    document.getElementById('c-box').appendChild(span);
-                    
-                    // Эмуляция падения и удара
+                    const p = document.createElement('div');
+                    p.className = 'word-particle';
+                    p.innerText = w;
+                    p.style.left = (box.left + Math.random() * box.width) + 'px';
+                    p.style.top = (box.top + 50) + 'px';
+                    document.body.appendChild(p);
                     setTimeout(() => {
-                        const fallDist = window.innerHeight - 350; // Расстояние до низа экрана
-                        span.style.transform = `translateY(${fallDist}px) rotate(${Math.random()*40-20}deg)`;
-                        span.style.opacity = '0';
-                        span.style.filter = 'blur(10px)';
+                        p.style.transform = `translateY(${window.innerHeight}px) rotate(${Math.random()*60-30}deg)`;
+                        p.style.opacity = '0';
                     }, i * 50);
-                    setTimeout(() => span.remove(), 2500);
+                    setTimeout(() => p.remove(), 2500);
                 });
-                cTxt.value = '';
+                cIn.value = '';
             }
         });
 
-        // --- 3. Orbit (Map) ---
-        const map = L.map('map', {zoomControl: false}).setView([0, 0], 2);
+        // --- 3. МКС ---
+        const map = L.map('map', {zoomControl: false, attributionControl: false}).setView([0, 0], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        const marker = L.marker([0, 0], {icon: L.divIcon({html:'🚀', className:'iss', iconSize:[30,30]})}).addTo(map);
-        async function updateISS() {
+        const iconISS = L.divIcon({html:'<div style="font-size:40px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1))">🛰️</div>', iconSize:[40,40], className:''});
+        const markerISS = L.marker([0, 0], {icon: iconISS}).addTo(map);
+
+        async function syncISS() {
             try {
-                const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
-                const d = await r.json();
-                marker.setLatLng([d.latitude, d.longitude]);
-                if(currentTab === 3) map.panTo([d.latitude, d.longitude]);
+                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+                const d = await res.json();
+                const pos = [d.latitude, d.longitude];
+                markerISS.setLatLng(pos);
+                if(tab === 3) map.panTo(pos);
+                document.getElementById('v-vel').innerText = Math.round(d.velocity).toLocaleString() + ' km/h';
+                document.getElementById('v-alt').innerText = Math.round(d.altitude) + ' km';
+                document.getElementById('v-pos').innerText = `${d.latitude.toFixed(1)}, ${d.longitude.toFixed(1)}`;
             } catch(e) {}
         }
-        setInterval(updateISS, 5000); updateISS();
+        setInterval(syncISS, 3000); syncISS();
 
-        // --- 4. Vision ---
-        const vs = document.getElementById('v-shield');
-        vs.addEventListener('mouseenter', () => vs.classList.remove('hide'));
-        vs.addEventListener('mouseleave', () => vs.classList.add('hide'));
+        // --- 4. Взгляд ---
+        let visionTask = null;
+        function initVision() {
+            const v = document.getElementById('webcam-video');
+            v.style.display = 'block';
+            const tracker = new tracking.ObjectTracker('face');
+            tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
+            visionTask = tracking.track('#webcam-video', tracker, { camera: true });
+            tracker.on('track', e => {
+                const s = document.getElementById('v-shield');
+                if (e.data.length === 0) s.classList.add('hide'); else s.classList.remove('hide');
+            });
+        }
+        function killVision() {
+            if(visionTask) visionTask.stop();
+            const v = document.getElementById('webcam-video');
+            if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
+            v.style.display = 'none';
+        }
 
-        // --- 5. Atmosphere ---
-        const grid = document.getElementById('grid-box');
-        const aCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const activeNodes = {};
+        // --- 5. Атмосфера ---
+        const library = [
+            {n:'Rain', i:'🌧️', s:'https://cdn.freesound.org/previews/538/538808_7392610-lq.mp3'}, 
+            {n:'Fire', i:'🔥', s:'https://cdn.freesound.org/previews/339/339324_5121236-lq.mp3'}, 
+            {n:'Forest', i:'🌲', s:'https://cdn.freesound.org/previews/515/515822_10860888-lq.mp3'}, 
+            {n:'Wind', i:'🌬️', s:'https://cdn.freesound.org/previews/172/172561_3104344-lq.mp3'}, 
+            {n:'Ocean', i:'🌊', s:'https://cdn.freesound.org/previews/400/400632_5121236-lq.mp3'}, 
+            {n:'Storm', i:'⚡', s:'https://cdn.freesound.org/previews/102/102808_1250165-lq.mp3'}, 
+            {n:'Cafe', i:'☕', s:'https://cdn.freesound.org/previews/175/175366_1324915-lq.mp3'}, 
+            {n:'Train', i:'🚂', s:'https://cdn.freesound.org/previews/131/131348_1876523-lq.mp3'}, 
+            {n:'Night', i:'🌙', s:'https://cdn.freesound.org/previews/352/352514_5121236-lq.mp3'}, 
+            {n:'Keys', i:'⌨️', s:'https://cdn.freesound.org/previews/240/240979_4413156-lq.mp3'}
+        ];
+        const activeAudio = {};
+        const grid = document.getElementById('sound-grid');
 
-        sounds.forEach(s => {
+        library.forEach(item => {
             const tile = document.createElement('div');
-            tile.className = 'sound-tile';
-            tile.innerHTML = `<span>${s.i}</span><p>${s.n}</p>`;
+            tile.className = 'ios-tile';
+            tile.innerHTML = `<span>${item.i}</span><p>${item.n}</p>`;
             tile.onclick = () => {
-                if(aCtx.state === 'suspended') aCtx.resume();
-                if(activeNodes[s.n]) {
-                    activeNodes[s.n].stop(); delete activeNodes[s.n];
+                if(activeAudio[item.n]) {
+                    activeAudio[item.n].pause(); delete activeAudio[item.n];
                     tile.classList.remove('on');
                 } else {
-                    const osc = aCtx.createOscillator();
-                    const g = aCtx.createGain();
-                    osc.type = 'sine'; osc.frequency.value = 120 + Math.random()*200;
-                    g.gain.value = 0.01;
-                    osc.connect(g); g.connect(aCtx.destination);
-                    osc.start(); activeNodes[s.n] = osc;
-                    tile.classList.add('on');
+                    const a = new Audio(item.s); a.loop = true; a.play();
+                    activeAudio[item.n] = a; tile.classList.add('on');
                 }
             };
             grid.appendChild(tile);
         });
 
-        function stopAudio() {
-            Object.values(activeNodes).forEach(n => n.stop());
-            document.querySelectorAll('.sound-tile').forEach(t => t.classList.remove('on'));
+        function killAudio() {
+            Object.values(activeAudio).forEach(a => a.pause());
+            for (let k in activeAudio) delete activeAudio[k];
+            document.querySelectorAll('.ios-tile').forEach(t => t.classList.remove('on'));
         }
     </script>
 </body>
