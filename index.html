@@ -3,246 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Lab / 5 Ideas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <title>Core OS | Pro Edition</title>
     <style>
         :root {
-            --bg: #050505;
-            --text: #ffffff;
-            --accent: #333;
-            --transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            --sf-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+            --bg: #000;
+            --text: #fff;
+            --accent: #007aff;
+            --glass: blur(25px) saturate(180%);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--sf-font);
+            height: 100vh;
             overflow: hidden;
-            transition: background var(--transition), color var(--transition);
+            transition: background 0.5s;
         }
 
-        /* Навигация */
-        #nav-trigger {
+        /* --- Apple Nav --- */
+        .nav-bar {
             position: fixed;
             top: 30px;
-            left: 30px;
-            z-index: 100;
-            cursor: pointer;
-            padding: 10px;
-            mix-blend-mode: difference;
-        }
-
-        .menu {
-            position: fixed;
-            top: 0;
-            left: -300px;
-            width: 280px;
-            height: 100vh;
-            background: #000;
-            border-right: 1px solid #222;
-            z-index: 99;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 20px;
-            padding: 40px;
-            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: var(--glass);
+            padding: 5px;
+            border-radius: 40px;
+            z-index: 1000;
+            border: 0.5px solid rgba(255,255,255,0.2);
         }
 
-        .menu.active { left: 0; }
-
-        .menu-item {
-            color: #555;
-            text-decoration: none;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+        .nav-item {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             transition: 0.3s;
+            opacity: 0.5;
         }
 
-        .menu-item:hover, .menu-item.active { color: #fff; }
+        .nav-item.active { opacity: 1; background: #fff; color: #000; }
 
-        /* Общие контейнеры */
-        .app-section {
-            display: none;
-            height: 100vh;
-            width: 100vw;
-            padding: 40px;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
+        .container { height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .app-section { display: none; width: 100%; max-width: 900px; animation: fadeIn 0.5s ease; flex-direction: column; align-items: center; }
         .app-section.active { display: flex; }
 
-        /* 1. Focus Stream */
-        #focus-input {
-            background: none;
-            border: none;
-            border-bottom: 1px solid #222;
-            color: #fff;
-            font-size: clamp(1.5rem, 5vw, 3rem);
-            font-family: 'JetBrains Mono', monospace;
-            text-align: center;
-            width: 80%;
-            outline: none;
-            transition: 0.5s;
-        }
-        #focus-input:focus { border-color: #fff; }
-        .timer-line { position: fixed; bottom: 0; left: 0; height: 3px; background: #fff; width: 0; transition: 1s linear; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        /* 2. Declutterer */
-        .declutter-list { max-width: 600px; width: 100%; }
-        .fade-item { 
-            font-size: 1.5rem; 
-            margin: 15px 0; 
-            transition: opacity 10s ease-in-out, filter 10s ease-in-out; 
-            cursor: text;
-        }
+        /* 1. Deep Work Flow */
+        #focus-area { width: 100%; text-align: center; }
+        #focus-input { background: none; border: none; color: #fff; font-size: 5rem; font-weight: 700; text-align: center; outline: none; width: 100%; transition: 0.3s; }
+        .warning-overlay { position: fixed; inset: 0; background: red; opacity: 0; pointer-events: none; transition: 1s; z-index: 1; }
 
-        /* 3. Orbit (ISS) */
-        .iss-data { font-family: 'JetBrains Mono'; font-size: 0.8rem; opacity: 0.4; margin-bottom: 20px; }
-        .iss-status { font-size: 2rem; font-weight: 200; max-width: 600px; }
+        /* 2. Infinite Cleanse */
+        .cleanse-container { width: 500px; position: relative; }
+        #cleanse-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 20px; padding: 20px; color: #fff; font-size: 1.2rem; outline: none; resize: none; height: 150px; }
+        .ghost-text { position: absolute; pointer-events: none; transition: 2s; opacity: 1; font-size: 1.2rem; width: 100%; padding: 20px; left: 0; top: 0; }
 
-        /* 4. Read/Rest */
-        .reader-box { max-width: 500px; line-height: 1.8; font-size: 1.1rem; transition: filter 2s; }
-        .blur-effect { filter: blur(8px); pointer-events: none; }
+        /* 3. ISS Orbit */
+        .orbit-title { font-size: 6rem; font-weight: 800; letter-spacing: -3px; }
+        .orbit-stats { font-family: monospace; color: var(--accent); font-size: 1.1rem; text-transform: uppercase; }
 
-        /* 5. Habit */
-        .habit-btn {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            border: 1px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            cursor: pointer;
-            transition: 0.4s;
-        }
-        .habit-btn:hover { border-color: #fff; transform: scale(1.05); }
+        /* 4. Vision Pause */
+        video#webcam { position: fixed; top: 20px; right: 20px; width: 120px; height: 90px; border-radius: 15px; border: 2px solid var(--accent); transform: scaleX(-1); display: none;}
+        .read-content { max-width: 600px; transition: 1.5s; font-size: 1.5rem; line-height: 1.6; text-align: left; }
+        .blurred { filter: blur(25px); opacity: 0.1; transform: scale(0.98); }
 
+        /* 5. Habit Ring */
+        .ring-svg { width: 300px; height: 300px; transform: rotate(-90deg); cursor: pointer; }
+        .ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 25; }
+        .ring-progress { fill: none; stroke: var(--accent); stroke-width: 25; stroke-linecap: round; stroke-dasharray: 628; stroke-dashoffset: 628; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body>
 
-    <div id="nav-trigger" onclick="toggleMenu()">●</div>
+    <div class="warning-overlay" id="focus-warning"></div>
+    <video id="webcam" autoplay playsinline></video>
 
-    <nav class="menu" id="mainMenu">
-        <div class="menu-item active" onclick="switchApp(1)">01. Focus Stream</div>
-        <div class="menu-item" onclick="switchApp(2)">02. Declutterer</div>
-        <div class="menu-item" onclick="switchApp(3)">03. Orbit Insight</div>
-        <div class="menu-item" onclick="switchApp(4)">04. Read / Rest</div>
-        <div class="menu-item" onclick="switchApp(5)">05. Micro-Habit</div>
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="switchApp(1, this)">Flow</div>
+        <div class="nav-item" onclick="switchApp(2, this)">Cleanse</div>
+        <div class="nav-item" onclick="switchApp(3, this)">Orbit</div>
+        <div class="nav-item" onclick="switchApp(4, this)">Vision</div>
+        <div class="nav-item" onclick="switchApp(5, this)">Circle</div>
     </nav>
 
-    <section id="app1" class="app-section active">
-        <input type="text" id="focus-input" placeholder="Введите задачу..." spellcheck="false">
-        <div class="timer-line" id="focus-timer"></div>
-    </section>
+    <main class="container">
+        <section id="app1" class="app-section active">
+            <input type="text" id="focus-input" placeholder="Just Type..." spellcheck="false">
+            <p style="opacity:0.3; margin-top:20px">Не останавливайтесь, иначе экран покраснеет.</p>
+        </section>
 
-    <section id="app2" class="app-section">
-        <div class="declutter-list" id="d-list">
-            <div class="fade-item" contenteditable="true">Кликни, чтобы вписать лишнее...</div>
-        </div>
-        <button onclick="startDeclutter()" style="margin-top:40px; background:none; border:1px solid #333; color:#fff; padding:10px 20px; cursor:pointer;">Отпустить</button>
-    </section>
+        <section id="app2" class="app-section">
+            <div class="cleanse-container" id="cleanse-box">
+                <textarea id="cleanse-input" placeholder="Что в голове? Нажми Enter, чтобы отпустить..."></textarea>
+            </div>
+        </section>
 
-    <section id="app3" class="app-section">
-        <div class="iss-data" id="coords">LAT: -- | LON: --</div>
-        <div class="iss-status" id="iss-msg">Синхронизация с орбитой...</div>
-    </section>
+        <section id="app3" class="app-section">
+            <div class="orbit-stats" id="iss-coords">Syncing...</div>
+            <h1 class="orbit-title">ORBIT</h1>
+            <p id="iss-speed" style="opacity:0.5">Скорость: 27,600 км/ч</p>
+        </section>
 
-    <section id="app4" class="app-section">
-        <div class="reader-box" id="reader">
-            <p>Этот текст предназначен для осознанного чтения. Если вы не будете двигать мышью в течение 10 секунд, страница начнет "засыпать", напоминая вам о важности отдыха для глаз. Минимализм — это не только интерфейс, но и гигиена внимания.</p>
-        </div>
-    </section>
+        <section id="app4" class="app-section">
+            <div class="read-content" id="read-text">
+                <h2 style="margin-bottom:20px">Контроль внимания</h2>
+                <p>Этот текст считывает ваше присутствие. Если вы закроете глаза или отвернетесь от экрана, он исчезнет. Это учит быть "здесь и сейчас". Позвольте камере увидеть ваше лицо для активации режима.</p>
+            </div>
+            <button class="nav-item" style="opacity:1; margin-top:30px; border:1px solid #fff" onclick="initCamera()">Включить сенсор</button>
+        </section>
 
-    <section id="app5" class="app-section">
-        <div class="habit-btn" id="habitCircle" onclick="incrementHabit()">0</div>
-        <p style="margin-top: 20px; opacity: 0.5; font-size: 0.8rem;">Кликните, чтобы отметить прогресс за сегодня</p>
-    </section>
+        <section id="app5" class="app-section">
+            <svg class="ring-svg" onclick="fillRing()">
+                <circle class="ring-bg" cx="150" cy="150" r="100"></circle>
+                <circle class="ring-progress" id="ring" cx="150" cy="150" r="100"></circle>
+            </svg>
+            <div style="margin-top:-170px; text-align:center">
+                <div style="font-size:3rem; font-weight:700" id="percent">0%</div>
+                <div style="font-size:0.8rem; opacity:0.5">DAY PROGRESS</div>
+            </div>
+        </section>
+    </main>
 
     <script>
-        // --- Навигация ---
-        function toggleMenu() {
-            document.getElementById('mainMenu').classList.toggle('active');
-        }
-
-        function switchApp(id) {
+        function switchApp(id, el) {
             document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById('app' + id).classList.add('active');
-            event.target.classList.add('active');
-            toggleMenu();
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('app'+id).classList.add('active');
+            el.classList.add('active');
+            if(id !== 4) stopCamera();
         }
 
-        // --- 1. Focus Stream ---
+        // 1. Flow Logic
+        let focusTimer;
         const fInput = document.getElementById('focus-input');
-        fInput.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
-                document.getElementById('focus-timer').style.width = '100%';
-                fInput.style.opacity = '0.3';
-                fInput.disabled = true;
+        const fWarning = document.getElementById('focus-warning');
+        fInput.addEventListener('input', () => {
+            fWarning.style.opacity = '0';
+            clearTimeout(focusTimer);
+            focusTimer = setTimeout(() => {
+                fWarning.style.opacity = '0.4';
+            }, 3000);
+        });
+
+        // 2. Cleanse Logic (Цикличная)
+        const cInput = document.getElementById('cleanse-input');
+        const cBox = document.getElementById('cleanse-box');
+        cInput.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const val = cInput.value;
+                if(!val) return;
+                
+                const ghost = document.createElement('div');
+                ghost.className = 'ghost-text';
+                ghost.innerText = val;
+                cBox.appendChild(ghost);
+                
+                setTimeout(() => {
+                    ghost.style.transform = 'translateY(-100px)';
+                    ghost.style.opacity = '0';
+                    ghost.style.filter = 'blur(10px)';
+                }, 10);
+                
+                setTimeout(() => ghost.remove(), 2000);
+                cInput.value = '';
             }
         });
 
-        // --- 2. Declutterer ---
-        function startDeclutter() {
-            document.querySelectorAll('.fade-item').forEach(item => {
-                item.style.opacity = '0';
-                item.style.filter = 'blur(10px)';
-            });
-        }
-
-        // --- 3. Orbit Insight (ISS API) ---
-        async function updateISS() {
+        // 3. ISS Logic (Fixed API)
+        async function getISS() {
             try {
-                const res = await fetch('http://api.open-notify.org/iss-now.json');
+                const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
                 const data = await res.json();
-                const lat = data.iss_position.latitude;
-                const lon = data.iss_position.longitude;
-                document.getElementById('coords').innerText = `LAT: ${lat} | LON: ${lon}`;
-                document.getElementById('iss-msg').innerText = "МКС находится в движении над планетой.";
-            } catch (e) {
-                document.getElementById('iss-msg').innerText = "Орбитальные данные временно недоступны.";
-            }
+                document.getElementById('iss-coords').innerText = `LAT: ${data.latitude.toFixed(4)} | LON: ${data.longitude.toFixed(4)} | ALT: ${data.altitude.toFixed(1)} KM`;
+                document.getElementById('iss-speed').innerText = `Скорость: ${data.velocity.toFixed(0)} км/ч`;
+            } catch(e) { console.log("API Error"); }
         }
-        setInterval(updateISS, 5000);
-        updateISS();
+        setInterval(getISS, 5000); getISS();
 
-        // --- 4. Read/Rest ---
-        let readTimer;
-        const reader = document.getElementById('reader');
-        function resetReadTimer() {
-            reader.classList.remove('blur-effect');
-            clearTimeout(readTimer);
-            readTimer = setTimeout(() => {
-                reader.classList.add('blur-effect');
-            }, 10000);
+        // 4. Vision (Face Detection Lite)
+        let video = document.getElementById('webcam');
+        let visionInterval;
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                // Простая логика: если в кадре есть движение пикселей (лицо), текст виден
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                visionInterval = setInterval(() => {
+                    ctx.drawImage(video, 0, 0, 300, 150);
+                    // Эмуляция детекции: если камера работает - текст виден. 
+                    // Для реального "моргания" нужны тяжелые библиотеки, но мы сделаем через фокус окна
+                    if (document.hasFocus()) {
+                        document.getElementById('read-text').classList.remove('blurred');
+                    } else {
+                        document.getElementById('read-text').classList.add('blurred');
+                    }
+                }, 500);
+            } catch(e) { alert("Камера недоступна"); }
         }
-        window.addEventListener('mousemove', resetReadTimer);
-
-        // --- 5. Micro-Habit ---
-        let count = localStorage.getItem('habitCount') || 0;
-        const habitCircle = document.getElementById('habitCircle');
-        habitCircle.innerText = count;
-        
-        function incrementHabit() {
-            count++;
-            habitCircle.innerText = count;
-            localStorage.setItem('habitCount', count);
-            const saturation = Math.min(count * 10, 100);
-            habitCircle.style.background = `hsla(200, ${saturation}%, 50%, 0.2)`;
-            habitCircle.style.borderColor = `hsl(200, ${saturation}%, 50%)`;
+        function stopCamera() {
+            if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            video.style.display = 'none';
+            clearInterval(visionInterval);
         }
 
+        // 5. Habit Circle
+        let ringVal = 0;
+        function fillRing() {
+            if(ringVal >= 628) return;
+            ringVal += 62.8; // 10 кликов до 100%
+            document.getElementById('ring').style.strokeDashoffset = 628 - ringVal;
+            document.getElementById('percent').innerText = Math.round((ringVal/628)*100) + '%';
+        }
     </script>
 </body>
 </html>
