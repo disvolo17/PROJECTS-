@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Visionary Absolute</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+    <title>Core OS 26.3 | Final Build</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+
     <style>
         :root {
             --ios-bg: radial-gradient(circle at 50% 50%, #ffffff 0%, #cfd4da 100%);
@@ -20,7 +20,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body { background: var(--ios-bg); font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; color: #1d1d1f; }
 
-        /* Navigation */
         nav {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             display: flex; background: rgba(255, 255, 255, 0.4); backdrop-filter: var(--glass);
@@ -29,44 +28,45 @@
         }
         .nav-btn {
             padding: 12px 24px; border-radius: 40px; font-size: 13px; font-weight: 700;
-            cursor: pointer; transition: 0.5s var(--spring); opacity: 0.3;
+            cursor: pointer; transition: 0.5s var(--spring); opacity: 0.3; color: #1d1d1f;
         }
-        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); }
 
-        /* Views */
-        .view { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 60px; }
-        .view.active { display: flex; animation: ios-reveal 0.8s var(--spring); }
+        .view { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 60px; position: absolute; top: 0; left: 0; }
+        .view.active { display: flex; animation: ios-reveal 0.6s var(--spring); }
         @keyframes ios-reveal { 0% { opacity: 0; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
 
-        /* Content Areas */
-        textarea { background: none; border: none; outline: none; resize: none; width: 100%; max-width: 800px; line-height: 1.4; }
-        #flow-area { font-size: 2.5rem; font-weight: 600; height: 70vh; color: #1d1d1f; }
-        #cleanse-txt { background: rgba(255,255,255,0.4); border-radius: 40px; padding: 40px; font-size: 1.8rem; backdrop-filter: var(--glass); border: 1px solid #fff; }
-
-        /* ISS Dashboard */
-        .iss-container { position: relative; width: 100%; max-width: 1000px; height: 500px; border-radius: 50px; overflow: hidden; border: 10px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
-        #map { width: 100%; height: 100%; z-index: 1; }
-        .iss-hud { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.7); padding: 15px 25px; border-radius: 25px; display: flex; gap: 20px; backdrop-filter: blur(10px); }
-        .stat-item h6 { font-size: 9px; color: #8e8e93; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-item p { font-size: 1.1rem; font-weight: 800; }
-
-        /* Vision Engine Style */
-        #v-shield { 
-            background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); 
-            padding: 80px; border-radius: 60px; text-align: center; border: 1px solid #fff; 
-            transition: 1s cubic-bezier(0.1, 0.8, 0.2, 1); max-width: 700px;
+        /* Вкладка 1: Поток */
+        #flow-area { 
+            background: none; border: none; outline: none; resize: none; 
+            width: 100%; max-width: 900px; height: 75vh;
+            font-size: 2.8rem; font-weight: 600; line-height: 1.3; color: #1d1d1f;
         }
-        #v-shield.locked { filter: blur(120px) brightness(1.2); opacity: 0.1; transform: scale(0.85); pointer-events: none; }
-        #webcam { position: fixed; top: 30px; right: 30px; width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid #fff; z-index: 9999; display: none; transform: scaleX(-1); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
 
-        /* Sound Tiles */
-        .sound-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; max-width: 900px; }
-        .tile { background: rgba(255,255,255,0.3); border-radius: 35px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.5); }
-        .tile.on { background: #fff; transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 15px 30px rgba(0,122,255,0.1); }
-        .tile span { font-size: 3rem; }
-        .tile p { font-size: 10px; font-weight: 800; color: #8e8e93; margin-top: 5px; text-transform: uppercase; }
+        /* Вкладка 2: Очищение */
+        #cleanse-txt { 
+            background: rgba(255,255,255,0.4); border-radius: 40px; padding: 40px; 
+            font-size: 1.8rem; backdrop-filter: var(--glass); border: 1px solid #fff; 
+            width: 100%; max-width: 800px; min-height: 300px;
+        }
+
+        /* Вкладка 3: МКС */
+        .iss-container { position: relative; width: 100%; max-width: 1000px; height: 500px; border-radius: 50px; overflow: hidden; border: 8px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
+        #map { width: 100%; height: 100%; }
+        .iss-hud { position: absolute; top: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.8); padding: 15px 25px; border-radius: 25px; display: flex; gap: 20px; backdrop-filter: blur(10px); }
+
+        /* Вкладка 4: Взгляд */
+        #v-shield { background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); padding: 60px; border-radius: 50px; text-align: center; border: 1px solid #fff; transition: 1s var(--spring); max-width: 600px; }
+        #v-shield.locked { filter: blur(100px); opacity: 0.1; transform: scale(0.8); pointer-events: none; }
+        #webcam { position: fixed; top: 30px; right: 30px; width: 140px; height: 140px; border-radius: 70px; object-fit: cover; border: 4px solid #fff; z-index: 9999; display: none; transform: scaleX(-1); }
+
+        /* Вкладка 5: Атмосфера */
+        .sound-grid { display: grid; grid-template-columns: repeat(5, 2fr); gap: 15px; width: 100%; max-width: 900px; }
+        .tile { background: rgba(255,255,255,0.3); border-radius: 30px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.5); }
+        .tile.on { background: #fff; transform: translateY(-10px); border-color: var(--accent); }
+        .tile span { font-size: 2.5rem; }
         
-        .lux-particle { position: fixed; pointer-events: none; font-weight: 800; color: var(--accent); transition: all 2s; z-index: 10001; }
+        .lux-particle { position: fixed; pointer-events: none; font-weight: 800; color: var(--accent); transition: all 2.5s; z-index: 10001; }
     </style>
 </head>
 <body>
@@ -82,15 +82,19 @@
     </nav>
 
     <main>
-        <section id="v1" class="view active"><textarea id="flow-area" placeholder="Начни писать..."></textarea></section>
-        
-        <section id="v2" class="view"><textarea id="cleanse-txt" placeholder="Выгрузи хаос (Enter)..."></textarea></section>
-        
+        <section id="v1" class="view active">
+            <textarea id="flow-area" placeholder="Твой поток мыслей..."></textarea>
+        </section>
+
+        <section id="v2" class="view">
+            <textarea id="cleanse-txt" placeholder="Выгрузи хаос и нажми Enter..."></textarea>
+        </section>
+
         <section id="v3" class="view">
             <div class="iss-container">
                 <div class="iss-hud">
-                    <div class="stat-item"><h6>Скорость</h6><p id="v-speed">0</p></div>
-                    <div class="stat-item"><h6>Высота</h6><p id="v-alt">0</p></div>
+                    <div class="stat-item"><p id="v-speed">0 км/ч</p></div>
+                    <div class="stat-item"><p id="v-alt">0 км</p></div>
                 </div>
                 <div id="map"></div>
             </div>
@@ -98,40 +102,34 @@
 
         <section id="v4" class="view">
             <div id="v-shield" class="vision-shield locked">
-                <h2 style="font-size: 3.5rem; letter-spacing: -2px; margin-bottom: 20px;">Safe Focus</h2>
-                <p style="font-size: 1.2rem; opacity: 0.6; line-height: 1.6;">Контент заблокирован. Требуется непрерывное визуальное подтверждение присутствия.</p>
-                <button id="v-btn" onclick="startAI()" style="margin-top: 40px; padding: 22px 50px; border-radius: 40px; border: none; background: var(--accent); color: #fff; font-weight: 800; cursor: pointer; font-size: 1rem; box-shadow: 0 10px 20px rgba(0,122,255,0.2);">Активировать биометрию</button>
+                <h2>Контент защищен</h2>
+                <p style="margin: 20px 0; opacity: 0.6;">Требуется FaceID сканирование.</p>
+                <button id="v-btn" onclick="initAI()" style="padding: 15px 35px; border-radius: 30px; border: none; background: var(--accent); color: #fff; font-weight: 800; cursor: pointer;">Активировать</button>
             </div>
         </section>
 
-        <section id="v5" class="view"><div class="sound-grid" id="audio-grid"></div></section>
+        <section id="v5" class="view">
+            <div class="sound-grid" id="audio-grid"></div>
+        </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let currentTab = 1;
-        let model = null;
-        let vStream = null;
-        let isDetecting = false;
-
+        // --- Навигация ---
         function tab(id, el) {
-            currentTab = id;
             document.querySelectorAll('.view, .nav-btn').forEach(n => n.classList.remove('active'));
             document.getElementById('v'+id).classList.add('active');
             el.classList.add('active');
-
             if(id === 3) setTimeout(() => map.invalidateSize(), 400);
             if(id !== 4) stopAI();
-            if(id !== 5) silenceAll();
         }
 
-        // --- Flow logic ---
+        // --- 1. Поток (Автосохранение) ---
         const flowArea = document.getElementById('flow-area');
-        // Сохраняем текст локально
-        flowArea.value = localStorage.getItem('flow-text') || "";
-        flowArea.oninput = () => localStorage.setItem('flow-text', flowArea.value);
+        flowArea.value = localStorage.getItem('core-flow') || "";
+        flowArea.oninput = () => localStorage.setItem('core-flow', flowArea.value);
 
-        // --- Cleanse Particles ---
+        // --- 2. Очищение ---
         const cleanseInput = document.getElementById('cleanse-txt');
         cleanseInput.onkeydown = (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
@@ -143,10 +141,9 @@
                     el.className = 'lux-particle'; el.innerText = char;
                     el.style.left = (rect.left + Math.random() * rect.width) + 'px';
                     el.style.top = (rect.top + Math.random() * rect.height) + 'px';
-                    el.style.fontSize = (Math.random() * 10 + 15) + 'px';
                     document.body.appendChild(el);
                     setTimeout(() => {
-                        el.style.transform = `translate(${(Math.random()-0.5)*1500}px, ${(Math.random()-0.5)*1500}px) scale(0) rotate(${Math.random()*1080}deg)`;
+                        el.style.transform = `translate(${(Math.random()-0.5)*1500}px, ${(Math.random()-0.5)*1500}px) scale(0) rotate(720deg)`;
                         el.style.opacity = '0';
                     }, 50);
                     setTimeout(() => el.remove(), 2500);
@@ -155,91 +152,53 @@
             }
         };
 
-        // --- ISS Tracker ---
+        // --- 3. МКС ---
         const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        const issMarker = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:30px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2))">🛰️</div>', className:'', iconSize:[30,30]})}).addTo(map);
+        const issMarker = L.marker([0,0], {icon: L.divIcon({html:'🛰️', className:'', iconSize:[30,30]})}).addTo(map);
         async function updateISS() {
             try {
                 const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
                 const d = await r.json();
-                const pos = [d.latitude, d.longitude];
-                issMarker.setLatLng(pos);
-                if(currentTab === 3) map.panTo(pos);
+                issMarker.setLatLng([d.latitude, d.longitude]);
                 document.getElementById('v-speed').innerText = Math.round(d.velocity).toLocaleString() + ' км/ч';
                 document.getElementById('v-alt').innerText = Math.round(d.altitude) + ' км';
-            } catch(e) { console.error("ISS Fetch Error"); }
+            } catch(e) {}
         }
-        setInterval(updateISS, 3000); updateISS();
+        setInterval(updateISS, 4000); updateISS();
 
-        // --- VISION AI (BlazeFace Professional) ---
-        async function startAI() {
+        // --- 4. Взгляд (Face Detection) ---
+        let model = null, vStream = null, isDetecting = false;
+        async function initAI() {
             const btn = document.getElementById('v-btn');
             const video = document.getElementById('webcam');
-            btn.innerText = "Инициализация нейросети...";
-            btn.disabled = true;
-
+            btn.innerText = "Загрузка...";
             try {
-                // Загружаем модель если еще нет
-                if (!model) model = await blazeface.load();
-                
-                // Запрашиваем камеру с конкретными параметрами
-                vStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user", width: 640, height: 480 } 
-                });
-                
+                if(!model) model = await blazeface.load();
+                vStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = vStream;
                 video.onloadedmetadata = () => {
-                    video.play();
-                    video.style.display = 'block';
-                    isDetecting = true;
-                    btn.innerText = "Биометрия активна";
-                    btn.style.background = "#34c759";
-                    btn.disabled = false;
-                    detectionLoop();
+                    video.play(); video.style.display = 'block';
+                    isDetecting = true; btn.innerText = "Активно"; detect();
                 };
-            } catch (err) {
-                btn.innerText = "Ошибка доступа (Проверьте HTTPS)";
-                btn.style.background = "#ff3b30";
-                btn.disabled = false;
-                console.error("AI Start Error:", err);
-            }
+            } catch (err) { btn.innerText = "Ошибка"; }
         }
-
-        async function detectionLoop() {
-            if (!isDetecting) return;
-            const video = document.getElementById('webcam');
-            const shield = document.getElementById('v-shield');
-            
-            // Получаем предсказания от модели
-            const predictions = await model.estimateFaces(video, false);
-            
-            if (predictions.length > 0) {
-                shield.classList.remove('locked');
-            } else {
-                shield.classList.add('locked');
-            }
-            
-            requestAnimationFrame(detectionLoop);
+        async function detect() {
+            if(!isDetecting) return;
+            const predictions = await model.estimateFaces(document.getElementById('webcam'), false);
+            document.getElementById('v-shield').classList.toggle('locked', predictions.length === 0);
+            requestAnimationFrame(detect);
         }
-
         function stopAI() {
             isDetecting = false;
-            if (vStream) {
-                vStream.getTracks().forEach(track => track.stop());
-                vStream = null;
-            }
-            const video = document.getElementById('webcam');
-            video.style.display = 'none';
-            video.srcObject = null;
+            if(vStream) vStream.getTracks().forEach(t => t.stop());
+            document.getElementById('webcam').style.display = 'none';
             document.getElementById('v-shield').classList.add('locked');
-            const btn = document.getElementById('v-btn');
-            btn.innerText = "Активировать биометрию";
-            btn.style.background = "var(--accent)";
+            document.getElementById('v-btn').innerText = "Активировать";
         }
 
-        // --- Atmosphere Audio ---
-        const tracks = [
+        // --- 5. Атмосфера ---
+        const sounds = [
             {n:'Rain', i:'🌧️', f:'rain.mp3'}, {n:'Fire', i:'🔥', f:'fire.mp3'},
             {n:'Forest', i:'🌲', f:'forest.mp3'}, {n:'Wind', i:'🌬️', f:'wind.mp3'},
             {n:'Ocean', i:'🌊', f:'ocean.mp3'}, {n:'Storm', i:'⚡', f:'storm.mp3'},
@@ -248,32 +207,21 @@
         ];
         const activeAudios = {};
         const grid = document.getElementById('audio-grid');
-        
-        tracks.forEach(track => {
-            const tile = document.createElement('div');
-            tile.className = 'tile'; 
-            tile.innerHTML = `<span>${track.i}</span><p>${track.n}</p>`;
-            tile.onclick = () => {
-                if(activeAudios[track.n]) {
-                    activeAudios[track.n].pause();
-                    delete activeAudios[track.n];
-                    tile.classList.remove('on');
+        sounds.forEach(s => {
+            const t = document.createElement('div');
+            t.className = 'tile'; t.innerHTML = `<span>${s.i}</span><p>${s.n}</p>`;
+            t.onclick = () => {
+                if(activeAudios[s.n]) {
+                    activeAudios[s.n].pause(); delete activeAudios[s.n]; t.classList.remove('on');
                 } else {
-                    const a = new Audio('sounds/' + track.f);
-                    a.loop = true;
-                    a.play().catch(() => console.warn(`Sound ${track.f} not found`));
-                    activeAudios[track.n] = a;
-                    tile.classList.add('on');
+                    const a = new Audio('sounds/' + s.f); a.loop = true; a.play();
+                    activeAudios[s.n] = a; t.classList.add('on');
                 }
             };
-            grid.appendChild(tile);
+            grid.appendChild(t);
         });
-
         function silenceAll() {
-            Object.keys(activeAudios).forEach(key => {
-                activeAudios[key].pause();
-                delete activeAudios[key];
-            });
+            Object.values(activeAudios).forEach(a => a.pause());
             document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
         }
     </script>
