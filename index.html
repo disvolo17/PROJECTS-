@@ -3,256 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Final Release</title>
+    <title>Core OS 26.3 | Ultra Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/tracking-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/data/face-min.js"></script>
     
     <style>
         :root {
-            --ios-bg: radial-gradient(circle at 50% 50%, #ffffff 0%, #e2e5ea 100%);
-            --glass: blur(100px) saturate(210%) brightness(1.05);
-            --card: rgba(255, 255, 255, 0.45);
+            --ios-bg: radial-gradient(circle at 50% 50%, #ffffff 0%, #d2d7dd 100%);
+            --glass: blur(120px) saturate(220%) brightness(1.1);
             --accent: #007aff;
-            --spring: cubic-bezier(0.2, 1, 0.2, 1.1);
+            --spring: cubic-bezier(0.15, 1, 0.3, 1.1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         body { background: var(--ios-bg); font-family: -apple-system, system-ui, sans-serif; height: 100vh; overflow: hidden; color: #1d1d1f; }
 
-        /* --- UI Elements --- */
+        /* --- Navigation --- */
         nav {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; background: rgba(255, 255, 255, 0.6); backdrop-filter: var(--glass);
-            padding: 8px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.8);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.06); z-index: 5000;
+            position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
+            display: flex; background: rgba(255, 255, 255, 0.5); backdrop-filter: var(--glass);
+            padding: 8px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1); z-index: 10000;
         }
         .nav-btn {
-            padding: 12px 24px; border-radius: 40px; font-size: 13px; font-weight: 700;
-            cursor: pointer; transition: 0.4s var(--spring); opacity: 0.3;
+            padding: 14px 28px; border-radius: 40px; font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: 0.5s var(--spring); opacity: 0.3;
         }
-        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .nav-btn.active { opacity: 1; background: #fff; transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
 
+        /* --- Views --- */
         .view { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
-        .view.active { display: flex; animation: ios-in 0.8s var(--spring); }
-        @keyframes ios-in { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .view.active { display: flex; animation: ios-reveal 1s var(--spring); }
+        @keyframes ios-reveal { 0% { opacity: 0; transform: scale(0.92) translateY(30px); filter: blur(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); } }
 
         /* --- P1: Flow --- */
-        #flow-input { background: none; border: none; font-size: 5rem; font-weight: 800; outline: none; text-align: center; letter-spacing: -3px; width: 100%; }
-        .danger { position: fixed; inset: 0; background: rgba(255, 59, 48, 0); pointer-events: none; z-index: 4000; transition: 0.3s; }
-        .danger.flash { animation: alert 0.4s infinite alternate; }
-        @keyframes alert { 0% { background: rgba(255, 59, 48, 0); } 100% { background: rgba(255, 59, 48, 0.5); } }
+        #flow-input { background: none; border: none; font-size: 6rem; font-weight: 800; outline: none; text-align: center; letter-spacing: -4px; width: 100%; color: #1d1d1f; }
+        .alert-overlay { position: fixed; inset: 0; background: rgba(255, 59, 48, 0); pointer-events: none; z-index: 9000; transition: 0.4s; }
+        .alert-overlay.on { animation: pulse-red 0.5s infinite alternate; }
+        @keyframes pulse-red { 0% { background: rgba(255, 59, 48, 0); } 100% { background: rgba(255, 59, 48, 0.4); } }
 
-        /* --- P2: Cleanse (The Drop) --- */
+        /* --- P2: Cleanse (Super-Expensive Dissolve) --- */
         #cleanse-txt { 
-            background: var(--card); border-radius: 40px; padding: 40px; border: 2px solid #fff;
-            font-size: 1.8rem; outline: none; resize: none; width: 100%; max-width: 700px; min-height: 250px;
-            backdrop-filter: var(--glass);
+            background: rgba(255,255,255,0.4); border-radius: 45px; padding: 50px; border: 2px solid #fff;
+            font-size: 2rem; outline: none; resize: none; width: 100%; max-width: 800px; min-height: 300px;
+            backdrop-filter: var(--glass); box-shadow: 0 50px 100px rgba(0,0,0,0.05);
         }
-        .particle {
-            position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8rem;
-            color: var(--accent); white-space: nowrap; z-index: 6000;
-            transition: transform 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95), opacity 0.8s ease;
+        .char-particle {
+            position: fixed; pointer-events: none; font-weight: 900; font-size: 2rem;
+            color: var(--accent); white-space: pre; z-index: 11000;
+            transition: transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 1s ease-out;
+            text-shadow: 0 10px 20px rgba(0,122,255,0.2);
         }
 
         /* --- P3: ISS --- */
-        .iss-bar { background: #fff; padding: 20px 40px; border-radius: 35px; display: flex; gap: 40px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
-        .stat h6 { font-size: 10px; text-transform: uppercase; color: #8e8e93; }
-        .stat p { font-size: 1.2rem; font-weight: 800; }
-        #map { width: 100%; max-width: 900px; height: 450px; border-radius: 45px; border: 5px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
+        .iss-stats { background: #fff; padding: 25px 50px; border-radius: 40px; display: flex; gap: 50px; margin-bottom: 35px; box-shadow: 0 20px 40px rgba(0,0,0,0.03); }
+        .iss-stats div h6 { font-size: 11px; text-transform: uppercase; color: #8e8e93; letter-spacing: 1px; }
+        .iss-stats div p { font-size: 1.5rem; font-weight: 800; }
+        #map { width: 100%; max-width: 1000px; height: 500px; border-radius: 60px; border: 10px solid #fff; box-shadow: 0 60px 120px rgba(0,0,0,0.12); }
 
-        /* --- P4: Vision --- */
-        .vision-ui { background: var(--card); backdrop-filter: var(--glass); padding: 60px; border-radius: 60px; text-align: center; transition: 0.6s var(--spring); }
-        .vision-ui.locked { filter: blur(60px); opacity: 0.05; transform: scale(0.9); }
-        #webcam { position: fixed; top: 30px; left: 30px; width: 160px; height: 120px; border-radius: 20px; object-fit: cover; transform: scaleX(-1); border: 2px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index: 9000; display: none; }
+        /* --- P4: Vision (Fully Fixed) --- */
+        .vision-gate { background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); padding: 80px; border-radius: 70px; text-align: center; border: 1px solid #fff; transition: 0.8s var(--spring); }
+        .vision-gate.locked { filter: blur(90px); opacity: 0; transform: scale(0.7); }
+        #webcam { position: fixed; bottom: 40px; right: 40px; width: 180px; height: 135px; border-radius: 30px; object-fit: cover; transform: scaleX(-1); border: 4px solid #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15); z-index: 15000; display: none; }
 
-        /* --- P5: Atmosphere --- */
-        .sound-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; max-width: 900px; }
-        .tile { 
-            background: var(--card); backdrop-filter: blur(30px); border-radius: 30px; aspect-ratio: 1;
+        /* --- P5: Atmosphere (Verified Sounds) --- */
+        .grid-sounds { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; width: 100%; max-width: 1000px; }
+        .audio-tile { 
+            background: rgba(255,255,255,0.3); backdrop-filter: blur(40px); border-radius: 40px; aspect-ratio: 1;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.4);
+            cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.5);
         }
-        .tile.on { background: #fff; transform: translateY(-8px) scale(1.05); border-color: var(--accent); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-        .tile span { font-size: 2.5rem; margin-bottom: 8px; }
-        .tile p { font-size: 10px; font-weight: 800; opacity: 0.5; text-transform: uppercase; }
+        .audio-tile.active { background: #fff; transform: translateY(-12px) scale(1.08); border-color: var(--accent); box-shadow: 0 30px 60px rgba(0,122,255,0.15); }
+        .audio-tile span { font-size: 3.5rem; margin-bottom: 12px; }
+        .audio-tile p { font-size: 11px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
 
-    <div class="danger" id="flash"></div>
+    <div class="alert-overlay" id="overlay"></div>
     <video id="webcam" autoplay muted playsinline></video>
 
     <nav>
-        <div class="nav-btn active" onclick="go(1, this)">Поток</div>
-        <div class="nav-btn" onclick="go(2, this)">Очищение</div>
-        <div class="nav-btn" onclick="go(3, this)">МКС</div>
-        <div class="nav-btn" onclick="go(4, this)">Взгляд</div>
-        <div class="nav-btn" onclick="go(5, this)">Атмосфера</div>
+        <div class="nav-btn active" onclick="switchTab(1, this)">Поток</div>
+        <div class="nav-btn" onclick="switchTab(2, this)">Очищение</div>
+        <div class="nav-btn" onclick="switchTab(3, this)">МКС</div>
+        <div class="nav-btn" onclick="switchTab(4, this)">Взгляд</div>
+        <div class="nav-btn" onclick="switchTab(5, this)">Атмосфера</div>
     </nav>
 
     <main>
         <section id="v1" class="view active">
-            <input type="text" id="flow-input" placeholder="Пиши..." autocomplete="off">
+            <input type="text" id="flow-input" placeholder="Пиши не останавливаясь..." autocomplete="off">
         </section>
 
         <section id="v2" class="view">
-            <textarea id="cleanse-txt" placeholder="Что на уме?"></textarea>
-            <p style="margin-top:20px; font-size:12px; font-weight:800; opacity:0.3">ENTER TO RELEASE</p>
+            <textarea id="cleanse-txt" placeholder="Выгрузи свой хаос здесь..."></textarea>
+            <p style="margin-top:30px; font-size:14px; font-weight:800; opacity:0.3; letter-spacing: 2px;">PRESS ENTER TO DISINTEGRATE</p>
         </section>
 
         <section id="v3" class="view">
-            <div class="iss-bar">
-                <div class="stat"><h6>Speed</h6><p id="s-v">0 km/h</p></div>
-                <div class="stat"><h6>Alt</h6><p id="s-a">0 km</p></div>
-                <div class="stat"><h6>Lat/Lng</h6><p id="s-c">0, 0</p></div>
+            <div class="iss-stats">
+                <div><h6>Velocity</h6><p id="iss-v">0 km/h</p></div>
+                <div><h6>Altitude</h6><p id="iss-a">0 km</p></div>
+                <div><h6>Position</h6><p id="iss-c">0, 0</p></div>
             </div>
             <div id="map"></div>
         </section>
 
         <section id="v4" class="view">
-            <div id="v-ui" class="vision-ui locked">
-                <h2 style="font-size: 3.5rem; letter-spacing: -2px; margin-bottom: 15px;">FaceID Auth</h2>
-                <p style="opacity:0.6; font-size:1.2rem;">Смотри в камеру, чтобы прочесть этот текст.</p>
-                <button onclick="startCam()" style="margin-top:30px; padding:15px 35px; border-radius:30px; border:none; background:var(--accent); color:#fff; font-weight:700; cursor:pointer;">Включить сенсор</button>
+            <div id="gate" class="vision-gate locked">
+                <h2 style="font-size: 4.5rem; letter-spacing: -4px; margin-bottom: 20px;">Secure Vision</h2>
+                <p style="opacity:0.5; font-size:1.4rem; font-weight: 500;">Данные зашифрованы. Требуется непрерывный зрительный контакт.</p>
+                <button onclick="bootCamera()" style="margin-top:40px; padding:20px 50px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-weight:800; font-size: 1.1rem; cursor:pointer; box-shadow: 0 20px 40px rgba(0,122,255,0.3);">Активировать FaceID</button>
             </div>
         </section>
 
         <section id="v5" class="view">
-            <div class="sound-grid" id="sounds"></div>
+            <div class="grid-sounds" id="soundboard"></div>
         </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let current = 1;
+        let tabId = 1;
 
-        function go(id, el) {
-            current = id;
+        function switchTab(id, el) {
+            tabId = id;
             document.querySelectorAll('.view, .nav-btn').forEach(n => n.classList.remove('active'));
             document.getElementById('v'+id).classList.add('active');
             el.classList.add('active');
             
-            document.getElementById('flash').classList.remove('flash');
-            if(id === 3) setTimeout(() => map.invalidateSize(), 400);
-            if(id !== 4) stopCam();
-            if(id !== 5) stopAudio();
+            document.getElementById('overlay').classList.remove('on');
+            if(id === 3) setTimeout(() => map.invalidateSize(), 500);
+            if(id !== 4) killCamera();
+            if(id !== 5) silenceAll();
         }
 
-        // 1. FLOW
-        let fT;
+        // --- 1. FLOW ---
+        let flowReset;
         document.getElementById('flow-input').oninput = () => {
-            document.getElementById('flash').classList.remove('flash');
-            clearTimeout(fT);
-            fT = setTimeout(() => { if(current === 1) document.getElementById('flash').classList.add('flash'); }, 5000);
+            document.getElementById('overlay').classList.remove('on');
+            clearTimeout(flowReset);
+            flowReset = setTimeout(() => { if(tabId === 1) document.getElementById('overlay').classList.add('on'); }, 5000);
         };
 
-        // 2. CLEANSE (FIXED PHYSICS)
-        const area = document.getElementById('cleanse-txt');
-        area.onkeydown = (e) => {
+        // --- 2. CLEANSE (Physical Disintegration) ---
+        const input = document.getElementById('cleanse-txt');
+        input.onkeydown = (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const rect = area.getBoundingClientRect();
-                const words = area.value.split(/\s+/);
-                words.forEach((w, i) => {
-                    if(!w) return;
-                    const p = document.createElement('div');
-                    p.className = 'particle';
-                    p.innerText = w;
-                    p.style.left = (rect.left + Math.random() * rect.width) + 'px';
-                    p.style.top = (rect.top + 50) + 'px';
-                    document.body.appendChild(p);
+                const box = input.getBoundingClientRect();
+                const text = input.value;
+                
+                // Создаем частицы для каждого символа для "дорогого" эффекта
+                for(let i = 0; i < text.length; i++) {
+                    if(text[i] === ' ' || text[i] === '\n') continue;
+                    
+                    const char = document.createElement('div');
+                    char.className = 'char-particle';
+                    char.innerText = text[i];
+                    
+                    // Начальная позиция внутри текстового поля
+                    char.style.left = (box.left + 50 + Math.random() * (box.width - 100)) + 'px';
+                    char.style.top = (box.top + 50 + Math.random() * (box.height - 100)) + 'px';
+                    document.body.appendChild(char);
 
-                    // Анимация: Падение -> Удар -> Растворение
+                    // Физика распада
                     setTimeout(() => {
-                        const ground = window.innerHeight - 80;
-                        p.style.transform = `translateY(${ground - rect.top - 50}px) rotate(${Math.random()*40-20}deg)`;
-                        
-                        setTimeout(() => {
-                            p.style.transform += ` translateY(-15px)`; // Отскок
-                            p.style.opacity = '0';
-                        }, 1000);
-                    }, i * 60);
-                    setTimeout(() => p.remove(), 3000);
-                });
-                area.value = '';
+                        const angle = (Math.random() - 0.5) * 40;
+                        const drop = window.innerHeight + 200;
+                        char.style.transform = `translateY(${drop}px) rotate(${angle}deg) scale(0.5)`;
+                        char.style.opacity = '0';
+                    }, Math.random() * 800);
+                    
+                    setTimeout(() => char.remove(), 2500);
+                }
+                input.value = '';
             }
         };
 
-        // 3. ISS
+        // --- 3. ISS ---
         const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        const m = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:35px">🛰️</div>', iconSize:[40,40], className:''})}).addTo(map);
-        async function upISS() {
+        const sat = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:45px; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.15))">🛰️</div>', iconSize:[50,50], className:''})}).addTo(map);
+        
+        async function fetchISS() {
             try {
                 const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
                 const d = await r.json();
                 const p = [d.latitude, d.longitude];
-                m.setLatLng(p); if(current === 3) map.panTo(p);
-                document.getElementById('s-v').innerText = Math.round(d.velocity).toLocaleString() + ' km/h';
-                document.getElementById('s-a').innerText = Math.round(d.altitude) + ' km';
-                document.getElementById('s-c').innerText = `${d.latitude.toFixed(1)}, ${d.longitude.toFixed(1)}`;
+                sat.setLatLng(p); if(tabId === 3) map.panTo(p);
+                document.getElementById('iss-v').innerText = Math.round(d.velocity).toLocaleString() + ' km/h';
+                document.getElementById('iss-a').innerText = Math.round(d.altitude) + ' km';
+                document.getElementById('iss-c').innerText = `${d.latitude.toFixed(2)}, ${d.longitude.toFixed(2)}`;
             } catch(e){}
         }
-        setInterval(upISS, 3000); upISS();
+        setInterval(fetchISS, 3000); fetchISS();
 
-        // 4. VISION (FIXED CAMERA)
-        let trackTask;
-        async function startCam() {
-            const v = document.getElementById('webcam');
-            v.style.display = 'block';
+        // --- 4. VISION (Strict Fix) ---
+        let vTask;
+        async function bootCamera() {
+            const video = document.getElementById('webcam');
+            video.style.display = 'block';
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                v.srcObject = stream;
-                const tracker = new tracking.ObjectTracker('face');
-                tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
-                trackTask = tracking.track('#webcam', tracker);
-                tracker.on('track', e => {
-                    const ui = document.getElementById('v-ui');
-                    if(e.data.length > 0) ui.classList.remove('locked'); else ui.classList.add('locked');
-                });
-            } catch(err) { alert("Камера недоступна"); }
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                video.srcObject = stream;
+                
+                // Ждем загрузки метаданных видео перед трекингом
+                video.onloadedmetadata = () => {
+                    const tracker = new tracking.ObjectTracker('face');
+                    tracker.setInitialScale(4);
+                    tracker.setStepSize(2);
+                    tracker.setEdgesDensity(0.1);
+                    
+                    vTask = tracking.track('#webcam', tracker, { camera: true });
+                    
+                    tracker.on('track', event => {
+                        const gate = document.getElementById('gate');
+                        if (event.data.length > 0) {
+                            gate.classList.remove('locked');
+                        } else {
+                            gate.classList.add('locked');
+                        }
+                    });
+                };
+            } catch(err) {
+                alert("Доступ к камере отклонен или устройство не найдено.");
+            }
         }
-        function stopCam() {
-            if(trackTask) trackTask.stop();
+        function killCamera() {
+            if(vTask) vTask.stop();
             const v = document.getElementById('webcam');
             if(v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
             v.style.display = 'none';
+            document.getElementById('gate').classList.add('locked');
         }
 
-        // 5. ATMOSPHERE (STABLE SOUNDS)
-        const db = [
-            {n:'Rain', i:'🌧️', s:'https://www.soundjay.com/nature/rain-01.mp3'},
-            {n:'Fire', i:'🔥', s:'https://www.soundjay.com/nature/fire-1.mp3'},
-            {n:'Forest', i:'🌲', s:'https://www.orangefreesounds.com/wp-content/uploads/2014/10/Forest-sounds-ambient.mp3'},
-            {n:'Wind', i:'🌬️', s:'https://www.soundjay.com/nature/wind-01.mp3'},
-            {n:'Waves', i:'🌊', s:'https://www.soundjay.com/nature/ocean-waves-1.mp3'},
-            {n:'Storm', i:'⚡', s:'https://www.soundjay.com/nature/thunder-4.mp3'},
+        // --- 5. ATMOSPHERE (High Fidelity & Working Links) ---
+        const tracks = [
+            {n:'Rain', i:'🌧️', s:'https://actions.google.com/sounds/v1/weather/rain_on_roof.ogg'},
+            {n:'Fire', i:'🔥', s:'https://actions.google.com/sounds/v1/ambiences/fireplace.ogg'},
+            {n:'Forest', i:'🌲', s:'https://actions.google.com/sounds/v1/ambiences/forest_ambience.ogg'},
+            {n:'Wind', i:'🌬️', s:'https://actions.google.com/sounds/v1/weather/wind_gentle_howl.ogg'},
+            {n:'Waves', i:'🌊', s:'https://actions.google.com/sounds/v1/water/waves_crashing_on_shore.ogg'},
+            {n:'Storm', i:'⚡', s:'https://actions.google.com/sounds/v1/weather/thunder_crack.ogg'},
             {n:'Cafe', i:'☕', s:'https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg'},
             {n:'Train', i:'🚂', s:'https://actions.google.com/sounds/v1/transportation/train_passing.ogg'},
             {n:'Night', i:'🌙', s:'https://actions.google.com/sounds/v1/ambiences/crickets_chirping.ogg'},
-            {n:'Typing', i:'⌨️', s:'https://www.soundjay.com/mechanical/typewriter-key-1.mp3'}
+            {n:'Keyboard', i:'⌨️', s:'https://www.soundjay.com/mechanical/typewriter-key-1.mp3'}
         ];
-        const players = {};
-        db.forEach(item => {
-            const t = document.createElement('div');
-            t.className = 'tile';
-            t.innerHTML = `<span>${item.i}</span><p>${item.n}</p>`;
-            t.onclick = () => {
-                if(players[item.n]) {
-                    players[item.n].pause(); delete players[item.n];
-                    t.classList.remove('on');
+        const activeTracks = {};
+        const board = document.getElementById('soundboard');
+
+        tracks.forEach(track => {
+            const tile = document.createElement('div');
+            tile.className = 'audio-tile';
+            tile.innerHTML = `<span>${track.i}</span><p>${track.n}</p>`;
+            tile.onclick = () => {
+                if(activeTracks[track.n]) {
+                    activeTracks[track.n].pause(); delete activeTracks[track.n];
+                    tile.classList.remove('active');
                 } else {
-                    const a = new Audio(item.s); a.loop = true; a.play();
-                    players[item.n] = a; t.classList.add('on');
+                    const audio = new Audio(track.s); 
+                    audio.loop = true; 
+                    audio.play().catch(e => console.log("Браузер заблокировал звук. Нужен клик."));
+                    activeTracks[track.n] = audio; 
+                    tile.classList.add('active');
                 }
             };
-            document.getElementById('sounds').appendChild(t);
+            board.appendChild(tile);
         });
-        function stopAudio() {
-            Object.values(players).forEach(p => p.pause());
-            for(let k in players) delete players[k];
-            document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
+
+        function silenceAll() {
+            Object.values(activeTracks).forEach(a => a.pause());
+            for(let key in activeTracks) delete activeTracks[key];
+            document.querySelectorAll('.audio-tile').forEach(t => t.classList.remove('active'));
         }
     </script>
 </body>
