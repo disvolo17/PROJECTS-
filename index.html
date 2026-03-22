@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Visionary Final Build</title>
+    <title>Core OS 26.3 | Visionary Ultra</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/tracking-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/data/face-min.js"></script>
     
     <style>
         :root {
@@ -34,9 +32,9 @@
 
         .view { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 60px; }
         .view.active { display: flex; animation: ios-reveal 1s var(--spring); }
-        @keyframes ios-reveal { 0% { opacity: 0; transform: scale(0.95) translateY(30px); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes ios-reveal { 0% { opacity: 0; transform: scale(0.95) translateY(20px); } 100% { opacity: 1; transform: scale(1); } }
 
-        /* --- 1. FLOW (Book Mode) --- */
+        /* --- 1. FLOW --- */
         #flow-area { 
             background: none; border: none; font-size: 2.5rem; font-weight: 600; 
             outline: none; text-align: left; width: 100%; max-width: 800px; 
@@ -47,11 +45,11 @@
         .alert-overlay.on { animation: pulse-red 0.5s infinite alternate; }
         @keyframes pulse-red { 0% { background: rgba(255, 59, 48, 0); } 100% { background: rgba(255, 59, 48, 0.4); } }
 
-        /* --- 2. CLEANSE (Lux Disintegrate) --- */
+        /* --- 2. CLEANSE --- */
         #cleanse-txt { 
             background: rgba(255,255,255,0.4); border-radius: 40px; padding: 40px; border: 1px solid #fff;
             font-size: 1.8rem; outline: none; resize: none; width: 100%; max-width: 800px; min-height: 300px;
-            backdrop-filter: var(--glass); box-shadow: 0 40px 80px rgba(0,0,0,0.05);
+            backdrop-filter: var(--glass);
         }
         .lux-particle {
             position: fixed; pointer-events: none; font-weight: 800; font-size: 1.8rem;
@@ -60,20 +58,38 @@
             transition: all 2s cubic-bezier(0.1, 0.8, 0.2, 1);
         }
 
-        /* --- 3. ISS --- */
-        #map { width: 100%; max-width: 1000px; height: 500px; border-radius: 50px; border: 10px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
+        /* --- 3. ISS (WITH INFO PANEL) --- */
+        .iss-container { position: relative; width: 100%; max-width: 1000px; height: 550px; }
+        #map { width: 100%; height: 100%; border-radius: 50px; border: 10px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
+        .iss-hud {
+            position: absolute; top: 30px; left: 30px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px);
+            padding: 20px 30px; border-radius: 30px; border: 1px solid #fff;
+            display: flex; gap: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        }
+        .stat-item h6 { font-size: 10px; text-transform: uppercase; color: #8e8e93; letter-spacing: 1px; margin-bottom: 4px; }
+        .stat-item p { font-size: 1.2rem; font-weight: 800; color: #1d1d1f; }
 
-        /* --- 4. VISION (Secure Contact) --- */
-        .vision-shield { 
+        /* --- 4. VISION (NEW FROM SCRATCH) --- */
+        #v-shield { 
             background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); 
             padding: 80px; border-radius: 60px; text-align: center; border: 1px solid #fff; 
-            transition: 1s var(--spring); 
+            transition: 1s var(--spring); max-width: 700px;
         }
-        .vision-shield.locked { filter: blur(100px); opacity: 0; transform: scale(0.8); }
+        /* Жидкий блюр при блокировке */
+        #v-shield.locked { 
+            filter: blur(100px) brightness(1.2); 
+            opacity: 0.1; 
+            transform: scale(0.9) translateY(20px); 
+            pointer-events: none;
+        }
+        /* Круглое окошко камеры в углу */
         #webcam { 
-            position: fixed; top: 25px; right: 25px; width: 150px; height: 112px; 
-            border-radius: 24px; object-fit: cover; transform: scaleX(-1); 
-            border: 3px solid #fff; z-index: 15000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: fixed; top: 30px; right: 30px; 
+            width: 120px; height: 120px; border-radius: 50%; 
+            object-fit: cover; transform: scaleX(-1); 
+            border: 4px solid #fff; z-index: 15000; display: none; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
         }
 
         /* --- 5. ATMOSPHERE --- */
@@ -85,7 +101,7 @@
         }
         .tile.on { background: #fff; transform: translateY(-12px); box-shadow: 0 25px 50px rgba(0,122,255,0.1); border-color: var(--accent); }
         .tile span { font-size: 3rem; margin-bottom: 10px; }
-        .tile p { font-size: 10px; font-weight: 900; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tile p { font-size: 10px; font-weight: 900; color: #8e8e93; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -95,7 +111,7 @@
 
     <nav>
         <div class="nav-btn active" onclick="tab(1, this)">Поток</div>
-        <div class="nav-btn" onclick="tab(2, this)">Очищение</div>
+        <div class="nav-btn" onclick="showCleanse(this)">Очищение</div>
         <div class="nav-btn" onclick="tab(3, this)">МКС</div>
         <div class="nav-btn" onclick="tab(4, this)">Взгляд</div>
         <div class="nav-btn" onclick="tab(5, this)">Атмосфера</div>
@@ -112,14 +128,21 @@
         </section>
 
         <section id="v3" class="view">
-            <div id="map"></div>
+            <div class="iss-container">
+                <div class="iss-hud">
+                    <div class="stat-item"><h6>Скорость</h6><p id="v-speed">0 км/ч</p></div>
+                    <div class="stat-item"><h6>Высота</h6><p id="v-alt">0 км</p></div>
+                    <div class="stat-item"><h6>Дистанция</h6><p id="v-dist">--- км</p></div>
+                </div>
+                <div id="map"></div>
+            </div>
         </section>
 
         <section id="v4" class="view">
             <div id="v-shield" class="vision-shield locked">
-                <h2 style="font-size: 4.5rem; letter-spacing: -4px; margin-bottom: 20px;">Safe Contact</h2>
-                <p style="opacity:0.6; font-size:1.5rem; font-weight: 500;">Текст доступен только при активном FaceID.</p>
-                <button onclick="startVision()" style="margin-top:40px; padding:20px 50px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-weight:800; cursor:pointer; font-size: 1rem;">Активировать защиту</button>
+                <h2 style="font-size: 4rem; letter-spacing: -3px; margin-bottom: 20px;">Safe Focus</h2>
+                <p style="opacity:0.6; font-size:1.5rem; font-weight: 500;">Текст доступен только при активном зрительном контакте. Система распознавания лиц включена.</p>
+                <button onclick="startNativeVision()" id="v-btn" style="margin-top:40px; padding:20px 50px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-weight:800; cursor:pointer; font-size: 1rem;">Активировать сенсор</button>
             </div>
         </section>
 
@@ -131,6 +154,12 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let currentTab = 1;
+        let myPos = null;
+
+        // Координаты пользователя (для МКС)
+        navigator.geolocation.getCurrentPosition(pos => {
+            myPos = [pos.coords.latitude, pos.coords.longitude];
+        }, () => console.log("Геопозиция отклонена"));
 
         function tab(id, el) {
             currentTab = id;
@@ -140,11 +169,23 @@
             
             document.getElementById('overlay').classList.remove('on');
             if(id === 3) setTimeout(() => map.invalidateSize(), 500);
-            if(id !== 4) stopVision();
-            if(id !== 5) silenceAll();
+            
+            // Чистим ресурсы при переключении
+            silenceAll();
+            
+            // Если уходим с вкладки Взгляд — гасим камеру
+            if(id !== 4) {
+                stopNativeVision();
+            }
+        }
+        
+        // Специальный хак для переключения на Очищение (из-за конфликта стилей частиц)
+        function showCleanse(el) {
+            tab(2, el);
+            cleanseInput.value = ''; // Чистим поле
         }
 
-        // --- 1. FLOW (Word-style) ---
+        // --- 1. FLOW ---
         let flowTimer;
         const flowArea = document.getElementById('flow-area');
         flowArea.oninput = () => {
@@ -161,6 +202,9 @@
                 const rect = cleanseInput.getBoundingClientRect();
                 const text = cleanseInput.value;
                 
+                // Чтобы не вешало браузер на большом тексте
+                if (text.length > 500) { alert('Слишком много хаоса. Чуть меньше.'); return;}
+
                 for(let i=0; i < text.length; i++) {
                     if(text[i] === ' ' || text[i] === '\n') continue;
                     
@@ -183,11 +227,19 @@
             }
         };
 
-        // --- 3. ISS ---
+        // --- 3. МКС ---
         const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         const issMarker = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:40px">🛰️</div>', className:'', iconSize:[40,40]})}).addTo(map);
         
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Радиус Земли
+            const dLat = (lat2-lat1) * Math.PI / 180;
+            const dLon = (lon2-lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
         async function updateISS() {
             try {
                 const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
@@ -195,36 +247,95 @@
                 const pos = [data.latitude, data.longitude];
                 issMarker.setLatLng(pos);
                 if(currentTab === 3) map.panTo(pos);
+
+                document.getElementById('v-speed').innerText = Math.round(data.velocity).toLocaleString() + ' км/ч';
+                document.getElementById('v-alt').innerText = Math.round(data.altitude) + ' км';
+                if(myPos) {
+                    const d = getDistance(myPos[0], myPos[1], data.latitude, data.longitude);
+                    document.getElementById('v-dist').innerText = Math.round(d).toLocaleString() + ' км';
+                }
             } catch(e){}
         }
         setInterval(updateISS, 3000); updateISS();
 
-        // --- 4. VISION (Strict Fix) ---
-        let visionTask;
-        async function startVision() {
+        // --- 4. VISION (NEW NATIVE FACE DETECTOR) ---
+        let visionStream = null;
+        let isVisionActive = false;
+        let faceDetector = null;
+        let detectionLoop = null;
+
+        async function startNativeVision() {
             const video = document.getElementById('webcam');
-            video.style.display = 'block';
+            const shield = document.getElementById('v-shield');
+            const btn = document.getElementById('v-btn');
+
+            // Проверяем, поддерживает ли браузер Face Detector API (нужен Chrome/Edge, на Safari может не работать)
+            if (!('FaceDetector' in window)) {
+                btn.innerText = "Ваш браузер не поддерживает Face API. Нужен Chrome/Edge.";
+                btn.style.background = "#ff3b30";
+                return;
+            }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
+                // Запрашиваем камеру
+                visionStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: 640, height: 480 } 
+                });
+                video.srcObject = visionStream;
+                video.style.display = 'block';
                 await video.play();
                 
-                const tracker = new tracking.ObjectTracker('face');
-                tracker.setInitialScale(4); tracker.setStepSize(2); tracker.setEdgesDensity(0.1);
-                
-                visionTask = tracking.track('#webcam', tracker);
-                tracker.on('track', event => {
-                    const shield = document.getElementById('v-shield');
-                    if (event.data.length > 0) shield.classList.remove('locked'); else shield.classList.add('locked');
-                });
-            } catch(err) { console.error("FaceID Error:", err); }
+                // Инициализируем детектор (быстрый режим)
+                faceDetector = new FaceDetector({ fastMode: true, maxFaces: 1 });
+                isVisionActive = true;
+                btn.innerText = "Сенсор активен";
+                btn.style.background = "#34c759";
+
+                // Запускаем цикл детекции (раз в 200мс, чтобы не вешать проц)
+                detectionLoop = setInterval(async () => {
+                    if (!isVisionActive) return;
+                    
+                    try {
+                        const faces = await faceDetector.detect(video);
+                        if (faces.length > 0) {
+                            // Лицо есть — разблокируем
+                            shield.classList.remove('locked');
+                        } else {
+                            // Лица нет — блокируем
+                            shield.classList.add('locked');
+                        }
+                    } catch (e) {
+                        // Ошибки детекции игнорируем, просто блокируем щит
+                        shield.classList.add('locked');
+                    }
+                }, 200);
+
+            } catch(err) {
+                btn.innerText = "Ошибка камеры. HTTPS запущен?";
+                btn.style.background = "#ff3b30";
+                console.error("Native FaceID Error:", err);
+            }
         }
-        function stopVision() {
-            if(visionTask) visionTask.stop();
+
+        function stopNativeVision() {
+            isVisionActive = false;
+            if (detectionLoop) clearInterval(detectionLoop);
+            
             const video = document.getElementById('webcam');
-            if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            const btn = document.getElementById('v-btn');
+            const shield = document.getElementById('v-shield');
+
+            if (visionStream) {
+                visionStream.getTracks().forEach(track => track.stop());
+            }
             video.style.display = 'none';
-            document.getElementById('v-shield').classList.add('locked');
+            video.srcObject = null;
+            shield.classList.add('locked');
+            
+            if (btn && btn.innerText !== "Ваш браузер не поддерживает Face API. Нужен Chrome/Edge.") {
+                btn.innerText = "Активировать сенсор";
+                btn.style.background = "#007aff";
+            }
         }
 
         // --- 5. ATMOSPHERE (Looping Local Sounds) ---
@@ -245,13 +356,16 @@
             
             tile.onclick = () => {
                 if (activeAudio[track.n]) {
+                    // Плавно выключаем
                     activeAudio[track.n].pause();
                     activeAudio[track.n].currentTime = 0;
                     delete activeAudio[track.n];
                     tile.classList.remove('on');
                 } else {
+                    // Включаем
                     const a = new Audio('sounds/' + track.f);
-                    a.loop = true; a.preload = 'auto';
+                    a.loop = true; 
+                    a.preload = 'auto';
                     a.play().catch(() => console.warn(track.f + " не найден в папке sounds/"));
                     activeAudio[track.n] = a;
                     tile.classList.add('on');
@@ -261,8 +375,13 @@
         });
 
         function silenceAll() {
-            Object.values(activeAudio).forEach(a => { a.pause(); a.currentTime = 0; });
+            Object.values(activeAudio).forEach(a => { 
+                a.pause(); 
+                a.currentTime = 0; 
+            });
+            // Очищаем объект
             for (let k in activeAudio) delete activeAudio[k];
+            // Снимаем подсветку
             document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
         }
     </script>
