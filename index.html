@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Visionary Ultra</title>
+    <title>Core OS 26.3 | Visionary Final Build</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
     
     <style>
         :root {
@@ -39,7 +42,6 @@
             background: none; border: none; font-size: 2.5rem; font-weight: 600; 
             outline: none; text-align: left; width: 100%; max-width: 800px; 
             height: 70vh; resize: none; line-height: 1.4; letter-spacing: -0.5px;
-            color: #1d1d1f;
         }
         .alert-overlay { position: fixed; inset: 0; background: rgba(255, 59, 48, 0); pointer-events: none; z-index: 9000; transition: 0.4s; }
         .alert-overlay.on { animation: pulse-red 0.5s infinite alternate; }
@@ -58,7 +60,7 @@
             transition: all 2s cubic-bezier(0.1, 0.8, 0.2, 1);
         }
 
-        /* --- 3. ISS (WITH INFO PANEL) --- */
+        /* --- 3. ISS --- */
         .iss-container { position: relative; width: 100%; max-width: 1000px; height: 550px; }
         #map { width: 100%; height: 100%; border-radius: 50px; border: 10px solid #fff; box-shadow: 0 40px 80px rgba(0,0,0,0.1); }
         .iss-hud {
@@ -70,26 +72,24 @@
         .stat-item h6 { font-size: 10px; text-transform: uppercase; color: #8e8e93; letter-spacing: 1px; margin-bottom: 4px; }
         .stat-item p { font-size: 1.2rem; font-weight: 800; color: #1d1d1f; }
 
-        /* --- 4. VISION (NEW FROM SCRATCH) --- */
+        /* --- 4. VISION (NATIVE GOOGLE ENGINE) --- */
         #v-shield { 
             background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); 
             padding: 80px; border-radius: 60px; text-align: center; border: 1px solid #fff; 
-            transition: 1s var(--spring); max-width: 700px;
+            transition: 0.8s var(--spring); max-width: 700px;
         }
-        /* Жидкий блюр при блокировке */
         #v-shield.locked { 
             filter: blur(100px) brightness(1.2); 
-            opacity: 0.1; 
-            transform: scale(0.9) translateY(20px); 
+            opacity: 0.05; 
+            transform: scale(0.9); 
             pointer-events: none;
         }
-        /* Круглое окошко камеры в углу */
         #webcam { 
             position: fixed; top: 30px; right: 30px; 
-            width: 120px; height: 120px; border-radius: 50%; 
+            width: 130px; height: 130px; border-radius: 50%; 
             object-fit: cover; transform: scaleX(-1); 
-            border: 4px solid #fff; z-index: 15000; display: none; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            border: 4px solid #fff; z-index: 15000; display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         /* --- 5. ATMOSPHERE --- */
@@ -111,7 +111,7 @@
 
     <nav>
         <div class="nav-btn active" onclick="tab(1, this)">Поток</div>
-        <div class="nav-btn" onclick="showCleanse(this)">Очищение</div>
+        <div class="nav-btn" onclick="tab(2, this)">Очищение</div>
         <div class="nav-btn" onclick="tab(3, this)">МКС</div>
         <div class="nav-btn" onclick="tab(4, this)">Взгляд</div>
         <div class="nav-btn" onclick="tab(5, this)">Атмосфера</div>
@@ -119,12 +119,12 @@
 
     <main>
         <section id="v1" class="view active">
-            <textarea id="flow-area" placeholder="Начни писать свою историю здесь..."></textarea>
+            <textarea id="flow-area" placeholder="Начни писать..."></textarea>
         </section>
 
         <section id="v2" class="view">
             <textarea id="cleanse-txt" placeholder="Выгрузи весь хаос..."></textarea>
-            <p style="margin-top:20px; font-size:12px; font-weight:800; opacity:0.3; letter-spacing: 2px;">ENTER TO DISINTEGRATE</p>
+            <p style="margin-top:20px; font-size:12px; font-weight:800; opacity:0.3">ENTER TO DISINTEGRATE</p>
         </section>
 
         <section id="v3" class="view">
@@ -132,7 +132,7 @@
                 <div class="iss-hud">
                     <div class="stat-item"><h6>Скорость</h6><p id="v-speed">0 км/ч</p></div>
                     <div class="stat-item"><h6>Высота</h6><p id="v-alt">0 км</p></div>
-                    <div class="stat-item"><h6>Дистанция</h6><p id="v-dist">--- км</p></div>
+                    <div class="stat-item"><h6>Дистанция</h6><p id="v-dist">---</p></div>
                 </div>
                 <div id="map"></div>
             </div>
@@ -140,9 +140,9 @@
 
         <section id="v4" class="view">
             <div id="v-shield" class="vision-shield locked">
-                <h2 style="font-size: 4rem; letter-spacing: -3px; margin-bottom: 20px;">Safe Focus</h2>
-                <p style="opacity:0.6; font-size:1.5rem; font-weight: 500;">Текст доступен только при активном зрительном контакте. Система распознавания лиц включена.</p>
-                <button onclick="startNativeVision()" id="v-btn" style="margin-top:40px; padding:20px 50px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-weight:800; cursor:pointer; font-size: 1rem;">Активировать сенсор</button>
+                <h2 style="font-size: 4rem; letter-spacing: -3px; margin-bottom: 20px;">Safe Contact</h2>
+                <p style="opacity:0.6; font-size:1.5rem; font-weight: 500;">Контент скрыт. Посмотрите в камеру для разблокировки.</p>
+                <button onclick="initVision()" id="v-btn" style="margin-top:40px; padding:20px 50px; border-radius:40px; border:none; background:var(--accent); color:#fff; font-weight:800; cursor:pointer;">Включить FaceID</button>
             </div>
         </section>
 
@@ -156,69 +156,45 @@
         let currentTab = 1;
         let myPos = null;
 
-        // Координаты пользователя (для МКС)
         navigator.geolocation.getCurrentPosition(pos => {
             myPos = [pos.coords.latitude, pos.coords.longitude];
-        }, () => console.log("Геопозиция отклонена"));
+        });
 
         function tab(id, el) {
             currentTab = id;
             document.querySelectorAll('.view, .nav-btn').forEach(n => n.classList.remove('active'));
             document.getElementById('v'+id).classList.add('active');
             el.classList.add('active');
-            
-            document.getElementById('overlay').classList.remove('on');
             if(id === 3) setTimeout(() => map.invalidateSize(), 500);
-            
-            // Чистим ресурсы при переключении
-            silenceAll();
-            
-            // Если уходим с вкладки Взгляд — гасим камеру
-            if(id !== 4) {
-                stopNativeVision();
-            }
-        }
-        
-        // Специальный хак для переключения на Очищение (из-за конфликта стилей частиц)
-        function showCleanse(el) {
-            tab(2, el);
-            cleanseInput.value = ''; // Чистим поле
+            if(id !== 4) stopVision();
+            if(id !== 5) silenceAll();
         }
 
         // --- 1. FLOW ---
         let flowTimer;
-        const flowArea = document.getElementById('flow-area');
-        flowArea.oninput = () => {
+        document.getElementById('flow-area').oninput = () => {
             document.getElementById('overlay').classList.remove('on');
             clearTimeout(flowTimer);
             flowTimer = setTimeout(() => { if(currentTab === 1) document.getElementById('overlay').classList.add('on'); }, 5000);
         };
 
-        // --- 2. CLEANSE (Lux Disintegrate) ---
+        // --- 2. CLEANSE ---
         const cleanseInput = document.getElementById('cleanse-txt');
         cleanseInput.onkeydown = (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 const rect = cleanseInput.getBoundingClientRect();
                 const text = cleanseInput.value;
-                
-                // Чтобы не вешало браузер на большом тексте
-                if (text.length > 500) { alert('Слишком много хаоса. Чуть меньше.'); return;}
-
                 for(let i=0; i < text.length; i++) {
                     if(text[i] === ' ' || text[i] === '\n') continue;
-                    
                     const char = document.createElement('div');
                     char.className = 'lux-particle';
                     char.innerText = text[i];
                     char.style.left = (rect.left + Math.random() * rect.width) + 'px';
                     char.style.top = (rect.top + Math.random() * rect.height) + 'px';
                     document.body.appendChild(char);
-
                     setTimeout(() => {
-                        const moveX = (Math.random() - 0.5) * 1200;
-                        const moveY = (Math.random() - 0.5) * 1200;
-                        char.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${Math.random()*1080}deg) scale(0)`;
+                        char.style.transform = `translate(${(Math.random()-0.5)*1200}px, ${(Math.random()-0.5)*1200}px) rotate(${Math.random()*1080}deg) scale(0)`;
                         char.style.opacity = '0';
                     }, 50);
                     setTimeout(() => char.remove(), 2500);
@@ -227,118 +203,83 @@
             }
         };
 
-        // --- 3. МКС ---
+        // --- 3. ISS ---
         const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         const issMarker = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:40px">🛰️</div>', className:'', iconSize:[40,40]})}).addTo(map);
         
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Радиус Земли
-            const dLat = (lat2-lat1) * Math.PI / 180;
-            const dLon = (lon2-lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-        }
-
         async function updateISS() {
             try {
                 const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
                 const data = await res.json();
-                const pos = [data.latitude, data.longitude];
-                issMarker.setLatLng(pos);
-                if(currentTab === 3) map.panTo(pos);
-
+                issMarker.setLatLng([data.latitude, data.longitude]);
+                if(currentTab === 3) map.panTo([data.latitude, data.longitude]);
                 document.getElementById('v-speed').innerText = Math.round(data.velocity).toLocaleString() + ' км/ч';
                 document.getElementById('v-alt').innerText = Math.round(data.altitude) + ' км';
-                if(myPos) {
-                    const d = getDistance(myPos[0], myPos[1], data.latitude, data.longitude);
-                    document.getElementById('v-dist').innerText = Math.round(d).toLocaleString() + ' км';
-                }
             } catch(e){}
         }
         setInterval(updateISS, 3000); updateISS();
 
-        // --- 4. VISION (NEW NATIVE FACE DETECTOR) ---
-        let visionStream = null;
-        let isVisionActive = false;
-        let faceDetector = null;
-        let detectionLoop = null;
+        // --- 4. VISION (NEW BLAZEFACE ENGINE) ---
+        let model = null;
+        let isDetecting = false;
+        let videoStream = null;
 
-        async function startNativeVision() {
-            const video = document.getElementById('webcam');
-            const shield = document.getElementById('v-shield');
+        async function initVision() {
             const btn = document.getElementById('v-btn');
-
-            // Проверяем, поддерживает ли браузер Face Detector API (нужен Chrome/Edge, на Safari может не работать)
-            if (!('FaceDetector' in window)) {
-                btn.innerText = "Ваш браузер не поддерживает Face API. Нужен Chrome/Edge.";
-                btn.style.background = "#ff3b30";
-                return;
-            }
+            const video = document.getElementById('webcam');
+            btn.innerText = "Загрузка AI...";
 
             try {
-                // Запрашиваем камеру
-                visionStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user", width: 640, height: 480 } 
-                });
-                video.srcObject = visionStream;
-                video.style.display = 'block';
-                await video.play();
+                // 1. Загружаем модель
+                model = await blazeface.load();
                 
-                // Инициализируем детектор (быстрый режим)
-                faceDetector = new FaceDetector({ fastMode: true, maxFaces: 1 });
-                isVisionActive = true;
-                btn.innerText = "Сенсор активен";
+                // 2. Запрашиваем камеру
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = videoStream;
+                video.style.display = 'block';
+                
+                btn.innerText = "Система активна";
                 btn.style.background = "#34c759";
-
-                // Запускаем цикл детекции (раз в 200мс, чтобы не вешать проц)
-                detectionLoop = setInterval(async () => {
-                    if (!isVisionActive) return;
-                    
-                    try {
-                        const faces = await faceDetector.detect(video);
-                        if (faces.length > 0) {
-                            // Лицо есть — разблокируем
-                            shield.classList.remove('locked');
-                        } else {
-                            // Лица нет — блокируем
-                            shield.classList.add('locked');
-                        }
-                    } catch (e) {
-                        // Ошибки детекции игнорируем, просто блокируем щит
-                        shield.classList.add('locked');
-                    }
-                }, 200);
-
-            } catch(err) {
-                btn.innerText = "Ошибка камеры. HTTPS запущен?";
+                isDetecting = true;
+                
+                // 3. Цикл детекции
+                detect();
+            } catch (err) {
+                btn.innerText = "Ошибка доступа";
                 btn.style.background = "#ff3b30";
-                console.error("Native FaceID Error:", err);
+                console.error(err);
             }
         }
 
-        function stopNativeVision() {
-            isVisionActive = false;
-            if (detectionLoop) clearInterval(detectionLoop);
-            
+        async function detect() {
+            if (!isDetecting) return;
             const video = document.getElementById('webcam');
-            const btn = document.getElementById('v-btn');
             const shield = document.getElementById('v-shield');
 
-            if (visionStream) {
-                visionStream.getTracks().forEach(track => track.stop());
+            const predictions = await model.estimateFaces(video, false);
+
+            if (predictions.length > 0) {
+                shield.classList.remove('locked');
+            } else {
+                shield.classList.add('locked');
             }
-            video.style.display = 'none';
-            video.srcObject = null;
-            shield.classList.add('locked');
-            
-            if (btn && btn.innerText !== "Ваш браузер не поддерживает Face API. Нужен Chrome/Edge.") {
-                btn.innerText = "Активировать сенсор";
-                btn.style.background = "#007aff";
-            }
+
+            requestAnimationFrame(detect);
         }
 
-        // --- 5. ATMOSPHERE (Looping Local Sounds) ---
+        function stopVision() {
+            isDetecting = false;
+            const video = document.getElementById('webcam');
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            video.style.display = 'none';
+            document.getElementById('v-shield').classList.add('locked');
+        }
+
+        // --- 5. ATMOSPHERE ---
+        const activeAudio = {};
         const tracks = [
             {n:'Rain', i:'🌧️', f:'rain.mp3'}, {n:'Fire', i:'🔥', f:'fire.mp3'},
             {n:'Forest', i:'🌲', f:'forest.mp3'}, {n:'Wind', i:'🌬️', f:'wind.mp3'},
@@ -346,42 +287,26 @@
             {n:'Cafe', i:'☕', f:'cafe.mp3'}, {n:'Train', i:'🚂', f:'train.mp3'},
             {n:'Night', i:'🌙', f:'night.mp3'}, {n:'Keys', i:'⌨️', f:'keys.mp3'}
         ];
-        const activeAudio = {};
         const grid = document.getElementById('audio-grid');
-
-        tracks.forEach(track => {
-            const tile = document.createElement('div');
-            tile.className = 'tile';
-            tile.innerHTML = `<span>${track.i}</span><p>${track.n}</p>`;
-            
-            tile.onclick = () => {
-                if (activeAudio[track.n]) {
-                    // Плавно выключаем
-                    activeAudio[track.n].pause();
-                    activeAudio[track.n].currentTime = 0;
-                    delete activeAudio[track.n];
-                    tile.classList.remove('on');
+        tracks.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'tile';
+            div.innerHTML = `<span>${t.i}</span><p>${t.n}</p>`;
+            div.onclick = () => {
+                if(activeAudio[t.n]) {
+                    activeAudio[t.n].pause(); delete activeAudio[t.n];
+                    div.classList.remove('on');
                 } else {
-                    // Включаем
-                    const a = new Audio('sounds/' + track.f);
-                    a.loop = true; 
-                    a.preload = 'auto';
-                    a.play().catch(() => console.warn(track.f + " не найден в папке sounds/"));
-                    activeAudio[track.n] = a;
-                    tile.classList.add('on');
+                    const a = new Audio('sounds/' + t.f);
+                    a.loop = true; a.play();
+                    activeAudio[t.n] = a; div.classList.add('on');
                 }
             };
-            grid.appendChild(tile);
+            grid.appendChild(div);
         });
-
         function silenceAll() {
-            Object.values(activeAudio).forEach(a => { 
-                a.pause(); 
-                a.currentTime = 0; 
-            });
-            // Очищаем объект
-            for (let k in activeAudio) delete activeAudio[k];
-            // Снимаем подсветку
+            Object.values(activeAudio).forEach(a => a.pause());
+            for(let k in activeAudio) delete activeAudio[k];
             document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
         }
     </script>
