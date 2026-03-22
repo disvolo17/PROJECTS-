@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Lab / 5 Ideas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --text: #ffffff;
+            --accent: #333;
+            --transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* Навигация */
+        #nav-trigger {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 100;
+            cursor: pointer;
+            padding: 10px;
+            mix-blend-mode: difference;
+        }
+
+        .menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100vh;
+            background: #000;
+            border-right: 1px solid #222;
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px;
+            transition: var(--transition);
+        }
+
+        .menu.active { left: 0; }
+
+        .menu-item {
+            color: #555;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .menu-item:hover, .menu-item.active { color: #fff; }
+
+        /* Общие контейнеры */
+        .app-section {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            padding: 40px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .app-section.active { display: flex; }
+
+        /* 1. Focus Stream */
+        #focus-input {
+            background: none;
+            border: none;
+            border-bottom: 1px solid #222;
+            color: #fff;
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            width: 80%;
+            outline: none;
+            transition: 0.5s;
+        }
+        #focus-input:focus { border-color: #fff; }
+        .timer-line { position: fixed; bottom: 0; left: 0; height: 3px; background: #fff; width: 0; transition: 1s linear; }
+
+        /* 2. Declutterer */
+        .declutter-list { max-width: 600px; width: 100%; }
+        .fade-item { 
+            font-size: 1.5rem; 
+            margin: 15px 0; 
+            transition: opacity 10s ease-in-out, filter 10s ease-in-out; 
+            cursor: text;
+        }
+
+        /* 3. Orbit (ISS) */
+        .iss-data { font-family: 'JetBrains Mono'; font-size: 0.8rem; opacity: 0.4; margin-bottom: 20px; }
+        .iss-status { font-size: 2rem; font-weight: 200; max-width: 600px; }
+
+        /* 4. Read/Rest */
+        .reader-box { max-width: 500px; line-height: 1.8; font-size: 1.1rem; transition: filter 2s; }
+        .blur-effect { filter: blur(8px); pointer-events: none; }
+
+        /* 5. Habit */
+        .habit-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: 0.4s;
+        }
+        .habit-btn:hover { border-color: #fff; transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+    <div id="nav-trigger" onclick="toggleMenu()">●</div>
+
+    <nav class="menu" id="mainMenu">
+        <div class="menu-item active" onclick="switchApp(1)">01. Focus Stream</div>
+        <div class="menu-item" onclick="switchApp(2)">02. Declutterer</div>
+        <div class="menu-item" onclick="switchApp(3)">03. Orbit Insight</div>
+        <div class="menu-item" onclick="switchApp(4)">04. Read / Rest</div>
+        <div class="menu-item" onclick="switchApp(5)">05. Micro-Habit</div>
+    </nav>
+
+    <section id="app1" class="app-section active">
+        <input type="text" id="focus-input" placeholder="Введите задачу..." spellcheck="false">
+        <div class="timer-line" id="focus-timer"></div>
+    </section>
+
+    <section id="app2" class="app-section">
+        <div class="declutter-list" id="d-list">
+            <div class="fade-item" contenteditable="true">Кликни, чтобы вписать лишнее...</div>
+        </div>
+        <button onclick="startDeclutter()" style="margin-top:40px; background:none; border:1px solid #333; color:#fff; padding:10px 20px; cursor:pointer;">Отпустить</button>
+    </section>
+
+    <section id="app3" class="app-section">
+        <div class="iss-data" id="coords">LAT: -- | LON: --</div>
+        <div class="iss-status" id="iss-msg">Синхронизация с орбитой...</div>
+    </section>
+
+    <section id="app4" class="app-section">
+        <div class="reader-box" id="reader">
+            <p>Этот текст предназначен для осознанного чтения. Если вы не будете двигать мышью в течение 10 секунд, страница начнет "засыпать", напоминая вам о важности отдыха для глаз. Минимализм — это не только интерфейс, но и гигиена внимания.</p>
+        </div>
+    </section>
+
+    <section id="app5" class="app-section">
+        <div class="habit-btn" id="habitCircle" onclick="incrementHabit()">0</div>
+        <p style="margin-top: 20px; opacity: 0.5; font-size: 0.8rem;">Кликните, чтобы отметить прогресс за сегодня</p>
+    </section>
+
+    <script>
+        // --- Навигация ---
+        function toggleMenu() {
+            document.getElementById('mainMenu').classList.toggle('active');
+        }
+
+        function switchApp(id) {
+            document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById('app' + id).classList.add('active');
+            event.target.classList.add('active');
+            toggleMenu();
+        }
+
+        // --- 1. Focus Stream ---
+        const fInput = document.getElementById('focus-input');
+        fInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                document.getElementById('focus-timer').style.width = '100%';
+                fInput.style.opacity = '0.3';
+                fInput.disabled = true;
+            }
+        });
+
+        // --- 2. Declutterer ---
+        function startDeclutter() {
+            document.querySelectorAll('.fade-item').forEach(item => {
+                item.style.opacity = '0';
+                item.style.filter = 'blur(10px)';
+            });
+        }
+
+        // --- 3. Orbit Insight (ISS API) ---
+        async function updateISS() {
+            try {
+                const res = await fetch('http://api.open-notify.org/iss-now.json');
+                const data = await res.json();
+                const lat = data.iss_position.latitude;
+                const lon = data.iss_position.longitude;
+                document.getElementById('coords').innerText = `LAT: ${lat} | LON: ${lon}`;
+                document.getElementById('iss-msg').innerText = "МКС находится в движении над планетой.";
+            } catch (e) {
+                document.getElementById('iss-msg').innerText = "Орбитальные данные временно недоступны.";
+            }
+        }
+        setInterval(updateISS, 5000);
+        updateISS();
+
+        // --- 4. Read/Rest ---
+        let readTimer;
+        const reader = document.getElementById('reader');
+        function resetReadTimer() {
+            reader.classList.remove('blur-effect');
+            clearTimeout(readTimer);
+            readTimer = setTimeout(() => {
+                reader.classList.add('blur-effect');
+            }, 10000);
+        }
+        window.addEventListener('mousemove', resetReadTimer);
+
+        // --- 5. Micro-Habit ---
+        let count = localStorage.getItem('habitCount') || 0;
+        const habitCircle = document.getElementById('habitCircle');
+        habitCircle.innerText = count;
+        
+        function incrementHabit() {
+            count++;
+            habitCircle.innerText = count;
+            localStorage.setItem('habitCount', count);
+            const saturation = Math.min(count * 10, 100);
+            habitCircle.style.background = `hsla(200, ${saturation}%, 50%, 0.2)`;
+            habitCircle.style.borderColor = `hsl(200, ${saturation}%, 50%)`;
+        }
+
+    </script>
+</body>
+</html>
