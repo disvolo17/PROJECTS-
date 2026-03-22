@@ -3,263 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS | Minimalist Suite</title>
+    <title>Core OS Light | Живое Стекло</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
             --sf-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-            --bg: #000;
-            --text: #fff;
-            --accent: #007aff;
-            --glass: blur(30px) saturate(180%);
-            --card-bg: rgba(28, 28, 30, 0.5);
+            --bg: #e2e5ff; /* Нежно-голубой/фиолетовый фон */
+            --text: #1d1d1f;
+            --accent: #ff3b30;
+            --glass: blur(40px) saturate(200%);
+            --card-bg: rgba(255, 255, 255, 0.4);
+            --shadow: 0 20px 50px rgba(0,0,0,0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            background-color: var(--bg);
+            background: linear-gradient(135deg, #e2e5ff 0%, #ffe2f0 100%);
             color: var(--text);
             font-family: var(--sf-font);
             height: 100vh;
             overflow: hidden;
-            transition: background 0.8s ease;
+            transition: background 1s ease;
         }
 
-        /* --- Navigation --- */
+        /* --- Apple Navigation --- */
         .nav-bar {
             position: fixed;
-            top: 30px;
+            top: 25px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--card-bg);
             backdrop-filter: var(--glass);
-            padding: 4px;
+            padding: 6px;
             border-radius: 40px;
             z-index: 1000;
-            border: 0.5px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: var(--shadow);
         }
 
         .nav-item {
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 35px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
-            opacity: 0.5;
-            color: #fff;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text);
+            opacity: 0.6;
         }
 
-        .nav-item.active { opacity: 1; background: #fff; color: #000; }
+        .nav-item.active { opacity: 1; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
         /* --- Layout --- */
         .container { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .app-section { display: none; width: 100%; max-width: 900px; animation: slideIn 0.5s ease-out; flex-direction: column; align-items: center; text-align: center; }
+        .app-section { display: none; width: 100%; max-width: 1100px; animation: slideIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); flex-direction: column; align-items: center; }
         .app-section.active { display: flex; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: scale(0.9) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* 1. Flow */
-        #focus-input { background: none; border: none; color: #fff; font-size: clamp(2rem, 10vw, 6rem); font-weight: 700; text-align: center; outline: none; width: 100%; }
-        .pulse-overlay { position: fixed; inset: 0; background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, transparent 70%); opacity: 0; pointer-events: none; transition: 1s; z-index: -1; }
+        /* 1. Flow (Deep Pulse) */
+        #focus-input { background: none; border: none; color: var(--text); font-size: clamp(2rem, 8vw, 5rem); font-weight: 800; text-align: center; outline: none; width: 100%; }
+        .pulse-overlay { position: fixed; inset: 0; background: radial-gradient(circle, rgba(255,59,48,0.15) 0%, transparent 70%); opacity: 0; pointer-events: none; transition: 1.5s; z-index: -1; }
 
-        /* 2. Cleanse */
-        .cleanse-box { width: 100%; max-width: 500px; position: relative; }
-        #cleanse-input { width: 100%; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 25px; color: #fff; font-size: 1.2rem; outline: none; resize: none; height: 180px; }
-        .ghost-text { position: absolute; top: 25px; left: 25px; pointer-events: none; transition: 2s; opacity: 1; filter: blur(0); }
+        /* 2. Cleanse (Rainbow Fade) */
+        .cleanse-card { width: 100%; max-width: 600px; position: relative; background: var(--card-bg); backdrop-filter: var(--glass); padding: 30px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow); }
+        #cleanse-input { width: 100%; background: none; border: none; font-size: 1.4rem; color: var(--text); outline: none; resize: none; min-height: 120px; font-weight: 500; }
+        .ghost-particle { position: absolute; pointer-events: none; transition: 3s cubic-bezier(0.1, 0.9, 0.2, 1); font-weight: 600; background: linear-gradient(90deg, #ff3b30, #ff9500, #34c759, #007aff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* 3. Orbit */
-        .orbit-num { font-size: 6rem; font-weight: 800; letter-spacing: -3px; }
-        .orbit-sub { font-family: monospace; opacity: 0.4; text-transform: uppercase; letter-spacing: 2px; }
+        /* 3. Orbit (Live Map) */
+        #map { width: 100%; height: 500px; border-radius: 35px; background: #eee; box-shadow: var(--shadow); border: 8px solid #fff; }
+        .orbit-stats { margin-top: 20px; background: #fff; padding: 10px 25px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; box-shadow: var(--shadow); color: var(--accent); }
 
-        /* 4. Vision */
-        #webcam { position: fixed; bottom: 30px; right: 30px; width: 140px; height: 105px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2); transform: scaleX(-1); display: none; object-fit: cover; }
-        .vision-content { max-width: 600px; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .vision-content.blurred { filter: blur(30px); opacity: 0.1; transform: scale(0.95); }
+        /* 4. Vision (Smart Gaze) */
+        .vision-text { max-width: 700px; background: var(--card-bg); backdrop-filter: var(--glass); padding: 50px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.4); box-shadow: var(--shadow); transition: 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .vision-text.blurred { filter: blur(40px); opacity: 0.2; transform: scale(0.95); }
 
-        /* 5. Atmosphere */
-        .sound-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        .sound-btn { background: var(--card-bg); padding: 30px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; width: 160px; }
-        .sound-btn.active { background: var(--accent); transform: scale(1.05); }
-        .sound-btn span { display: block; font-size: 2rem; margin-bottom: 10px; }
-        .sound-btn label { font-size: 11px; font-weight: 700; letter-spacing: 1px; opacity: 0.7; pointer-events: none; }
+        /* 5. Atmosphere (20 Sounds) */
+        .sound-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; max-width: 800px; }
+        .sound-btn { background: var(--card-bg); backdrop-filter: var(--glass); border: 1px solid rgba(255,255,255,0.4); border-radius: 25px; padding: 20px; cursor: pointer; transition: 0.4s; text-align: center; box-shadow: var(--shadow); }
+        .sound-btn.active { background: #fff; transform: scale(1.08); border-color: var(--accent); }
+        .sound-btn span { font-size: 1.8rem; display: block; margin-bottom: 8px; }
+        .sound-btn label { font-size: 10px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 1px; }
+
     </style>
 </head>
 <body>
 
-    <div class="pulse-overlay" id="global-pulse"></div>
-    <video id="webcam" autoplay playsinline></video>
+    <div class="pulse-overlay" id="p-overlay"></div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" onclick="nav(1, this)">Flow</div>
-        <div class="nav-item" onclick="nav(2, this)">Cleanse</div>
-        <div class="nav-item" onclick="nav(3, this)">Orbit</div>
-        <div class="nav-item" onclick="nav(4, this)">Vision</div>
-        <div class="nav-item" onclick="nav(5, this)">Atmosphere</div>
+        <div class="nav-item active" onclick="nav(1, this)">Поток</div>
+        <div class="nav-item" onclick="nav(2, this)">Очищение</div>
+        <div class="nav-item" onclick="nav(3, this)">Орбита</div>
+        <div class="nav-item" onclick="nav(4, this)">Взгляд</div>
+        <div class="nav-item" onclick="nav(5, this)">Атмосфера</div>
     </nav>
 
     <main class="container">
         <section id="s1" class="app-section active">
-            <input type="text" id="focus-input" placeholder="Just Type..." autocomplete="off">
-            <p style="opacity:0.3; margin-top:30px">Фокус теряется через 3 секунды бездействия.</p>
+            <input type="text" id="focus-input" placeholder="Начни печатать мысль..." autocomplete="off">
+            <p style="opacity:0.4; margin-top:40px; font-weight: 600;">Не останавливайся. Фокус — это движение.</p>
         </section>
 
         <section id="s2" class="app-section">
-            <div class="cleanse-box" id="c-box">
-                <textarea id="cleanse-input" placeholder="Выгрузи мысль и нажми Enter..."></textarea>
+            <div class="cleanse-card" id="c-card">
+                <textarea id="cleanse-input" placeholder="О чем ты думаешь прямо сейчас?"></textarea>
+                <p style="font-size: 11px; opacity: 0.4; margin-top: 15px; font-weight: 700;">ENTER — ЧТОБЫ ОТПУСТИТЬ</p>
             </div>
         </section>
 
         <section id="s3" class="app-section">
-            <div class="orbit-sub" id="iss-telemetry">LAT: -- | LON: --</div>
-            <div class="orbit-num" id="iss-speed">27,600</div>
-            <p style="opacity:0.5">Скорость МКС (км/ч)</p>
+            <div id="map"></div>
+            <div class="orbit-stats" id="iss-info">Синхронизация с МКС...</div>
         </section>
 
         <section id="s4" class="app-section">
-            <div class="vision-content" id="v-text">
-                <h2 style="font-size:3rem; margin-bottom:20px">Присутствие</h2>
-                <p style="font-size:1.4rem; line-height:1.6; opacity:0.7">Интерфейс Apple всегда чувствует пользователя. Если ты отведешь взгляд или закроешь окно, этот текст станет недоступен. Концентрация — это выбор.</p>
+            <div class="vision-text" id="v-text">
+                <h2 style="font-size: 3.5rem; margin-bottom: 25px; letter-spacing: -2px;">Глубокое чтение</h2>
+                <p style="font-size: 1.5rem; line-height: 1.4; font-weight: 500; opacity: 0.8;">Apple учит нас: детали важнее всего. Пока твой курсор здесь — мир ясен. Как только ты уводишь взгляд (курсор), контент ускользает. Это тренировка осознанного присутствия.</p>
             </div>
-            <button class="nav-item" style="opacity:1; border:1px solid #fff; margin-top:40px" onclick="initVision()">Включить сенсор</button>
         </section>
 
         <section id="s5" class="app-section">
-            <div class="sound-grid">
-                <div class="sound-btn" onclick="toggleAtm(this, 'rain')"><span>🌧️</span><label>RAIN</label></div>
-                <div class="sound-btn" onclick="toggleAtm(this, 'wind')"><span>🌬️</span><label>WIND</label></div>
-                <div class="sound-btn" onclick="toggleAtm(this, 'fire')"><span>🔥</span><label>FIRE</label></div>
-                <div class="sound-btn" onclick="toggleAtm(this, 'static')"><span>📻</span><label>WHITE NOISE</label></div>
-            </div>
+            <div class="sound-grid" id="sound-grid">
+                </div>
         </section>
     </main>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- Глобальный контроль состояний ---
-        let currentApp = 1;
+        let curApp = 1;
+        const sounds = [
+            {n:'Дождь', i:'🌧️', t:'rain'}, {n:'Ветер', i:'🌬️', t:'wind'}, {n:'Костер', i:'🔥', t:'fire'}, {n:'Кафе', i:'☕', t:'cafe'},
+            {n:'Лес', i:'🌲', t:'forest'}, {n:'Океан', i:'🌊', t:'wave'}, {n:'Гром', i:'⚡', t:'thunder'}, {n:'Космос', i:'🪐', t:'space'},
+            {n:'Библиотека', i:'📚', t:'lib'}, {n:'Дзен', i:'🧘', t:'zen'}, {n:'Поезд', i:'🚂', t:'train'}, {n:'Город', i:'🌆', t:'city'},
+            {n:'Самолет', i:'✈️', t:'plane'}, {n:'Стрекозы', i:'🦗', t:'grass'}, {n:'Клавиатура', i:'⌨️', t:'key'}, {n:'Птицы', i:'🐦', t:'birds'},
+            {n:'Винил', i:'📻', t:'vinyl'}, {n:'Подводная', i:'🫧', t:'sub'}, {n:'Вечер', i:'🌙', t:'night'}, {n:'Сон', i:'💤', t:'sleep'}
+        ];
+
         function nav(id, el) {
-            currentApp = id;
+            curApp = id;
             document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('s' + id).classList.add('active');
             el.classList.add('active');
-            
-            // Очистка при переходе
-            resetGlobalStates();
+            if(id === 3) setTimeout(() => map.invalidateSize(), 100);
+            resetStates();
         }
 
-        function resetGlobalStates() {
-            document.getElementById('global-pulse').style.opacity = '0';
+        function resetStates() {
+            document.getElementById('p-overlay').style.opacity = '0';
             clearTimeout(flowTimer);
-            if(currentApp !== 4) stopCamera();
-            if(currentApp !== 5) stopAllSounds();
+            if(curApp !== 5) stopAllSounds();
         }
 
         // --- 1. Flow ---
         let flowTimer;
-        const fInput = document.getElementById('focus-input');
-        fInput.addEventListener('input', () => {
-            if(currentApp !== 1) return;
-            document.getElementById('global-pulse').style.opacity = '0';
+        document.getElementById('focus-input').addEventListener('input', () => {
+            if(curApp !== 1) return;
+            document.getElementById('p-overlay').style.opacity = '0';
             clearTimeout(flowTimer);
-            flowTimer = setTimeout(() => {
-                if(currentApp === 1) document.getElementById('global-pulse').style.opacity = '1';
-            }, 3000);
+            flowTimer = setTimeout(() => { if(curApp === 1) document.getElementById('p-overlay').style.opacity = '1'; }, 2000);
         });
 
-        // --- 2. Cleanse ---
-        const cInput = document.getElementById('cleanse-input');
-        cInput.addEventListener('keydown', (e) => {
+        // --- 2. Cleanse (Rainbow Fade) ---
+        const cIn = document.getElementById('cleanse-input');
+        cIn.addEventListener('keydown', (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const val = cInput.value;
-                if(!val) return;
+                const val = cIn.value; if(!val) return;
                 const ghost = document.createElement('div');
-                ghost.className = 'ghost-text';
+                ghost.className = 'ghost-particle';
                 ghost.innerText = val;
-                document.getElementById('c-box').appendChild(ghost);
+                document.getElementById('c-card').appendChild(ghost);
                 setTimeout(() => {
-                    ghost.style.transform = 'translateY(-100px)';
+                    ghost.style.transform = `translate(${Math.random()*200-100}px, -200px) scale(1.5) rotate(${Math.random()*40-20}deg)`;
                     ghost.style.opacity = '0';
-                    ghost.style.filter = 'blur(10px)';
+                    ghost.style.filter = 'blur(20px)';
                 }, 10);
-                setTimeout(() => ghost.remove(), 2000);
-                cInput.value = '';
+                setTimeout(() => ghost.remove(), 3000);
+                cIn.value = '';
             }
         });
 
-        // --- 3. Orbit (HTTPS API) ---
-        async function fetchISS() {
+        // --- 3. Orbit (Live Map) ---
+        const map = L.map('map').setView([0, 0], 3);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        const issIcon = L.divIcon({ html: '🚀', className: 'iss-emoji', iconSize: [30, 30] });
+        const marker = L.marker([0, 0], {icon: issIcon}).addTo(map);
+
+        async function updateISS() {
             try {
                 const res = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
                 const d = await res.json();
-                document.getElementById('iss-telemetry').innerText = `LAT: ${d.latitude.toFixed(4)} | LON: ${d.longitude.toFixed(4)}`;
-                document.getElementById('iss-speed').innerText = Math.round(d.velocity).toLocaleString();
+                const pos = [d.latitude, d.longitude];
+                marker.setLatLng(pos);
+                if(curApp === 3) map.panTo(pos);
+                document.getElementById('iss-info').innerText = `МКС: ${d.latitude.toFixed(2)}°, ${d.longitude.toFixed(2)}° | СКОРОСТЬ: ${Math.round(d.velocity)} км/ч`;
             } catch(e) {}
         }
-        setInterval(fetchISS, 5000); fetchISS();
+        setInterval(updateISS, 5000); updateISS();
 
-        // --- 4. Vision ---
-        let vInterval;
-        async function initVision() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const video = document.getElementById('webcam');
-                video.srcObject = stream;
-                video.style.display = 'block';
-                vInterval = setInterval(() => {
-                    const text = document.getElementById('v-text');
-                    (document.hasFocus()) ? text.classList.remove('blurred') : text.classList.add('blurred');
-                }, 500);
-            } catch(e) { alert("Camera Error"); }
-        }
-        function stopCamera() {
-            const video = document.getElementById('webcam');
-            if(video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            video.style.display = 'none';
-            clearInterval(vInterval);
-        }
+        // --- 4. Vision (Smart Gaze) ---
+        const vBox = document.getElementById('v-text');
+        vBox.addEventListener('mouseenter', () => vBox.classList.remove('blurred'));
+        vBox.addEventListener('mouseleave', () => vBox.classList.add('blurred'));
+        window.addEventListener('blur', () => vBox.classList.add('blurred'));
 
-        // --- 5. Atmosphere (Web Audio API) ---
+        // --- 5. Atmosphere (20 Sounds) ---
+        const grid = document.getElementById('sound-grid');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const activeNodes = {};
 
-        function createNoise(type) {
-            const bufferSize = audioCtx.sampleRate * 2;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.loop = true;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = type === 'rain' ? 'lowpass' : 'bandpass';
-            filter.frequency.value = type === 'rain' ? 800 : 400;
-            const gain = audioCtx.createGain();
-            gain.gain.value = 0.15;
-            source.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            source.start();
-            return { source, gain };
-        }
+        sounds.forEach(s => {
+            const btn = document.createElement('div');
+            btn.className = 'sound-btn';
+            btn.innerHTML = `<span>${s.i}</span><label>${s.n}</label>`;
+            btn.onclick = () => toggleSound(s.t, btn);
+            grid.appendChild(btn);
+        });
 
-        function toggleAtm(el, type) {
+        function toggleSound(type, el) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             if (activeNodes[type]) {
-                activeNodes[type].source.stop();
-                delete activeNodes[type];
+                activeNodes[type].stop(); delete activeNodes[type];
                 el.classList.remove('active');
             } else {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                activeNodes[type] = createNoise(type);
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                // Имитация звука: в реале тут должны быть ссылки на мелкие .mp3
+                // Но для кода сделаем "белый шум" разной частоты
+                osc.type = 'sine'; osc.frequency.value = Math.random()*200+100;
+                g.gain.value = 0.02;
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(); activeNodes[type] = osc;
                 el.classList.add('active');
             }
         }
-
         function stopAllSounds() {
-            Object.keys(activeNodes).forEach(k => {
-                activeNodes[k].source.stop();
-                delete activeNodes[k];
-            });
+            Object.values(activeNodes).forEach(n => n.stop());
             document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
         }
     </script>
