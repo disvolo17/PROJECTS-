@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core OS 26.3 | Visionary Final</title>
+    <title>Core OS 26.3 | Visionary Elite</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -44,17 +48,17 @@
 
         #v-shield { 
             background: rgba(255,255,255,0.6); backdrop-filter: var(--glass); 
-            padding: 60px; border-radius: 50px; text-align: center; border: 1px solid #fff; 
-            transition: 0.6s ease; max-width: 600px;
+            padding: 80px; border-radius: 60px; text-align: center; border: 1px solid #fff; 
+            transition: 1s cubic-bezier(0.1, 0.8, 0.2, 1); max-width: 700px;
         }
-        #v-shield.locked { filter: blur(80px); opacity: 0.1; transform: scale(0.9); pointer-events: none; }
-        #webcam { position: fixed; top: 30px; right: 30px; width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; z-index: 9999; display: none; transform: scaleX(-1); }
+        #v-shield.locked { filter: blur(120px) brightness(1.2); opacity: 0.1; transform: scale(0.8); pointer-events: none; }
+        #webcam { position: fixed; top: 30px; right: 30px; width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 5px solid #fff; z-index: 9999; display: none; transform: scaleX(-1); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
 
         .sound-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; max-width: 900px; }
-        .tile { background: rgba(255,255,255,0.3); border-radius: 30px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.5); }
-        .tile.on { background: #fff; transform: scale(1.05); border-color: var(--accent); }
-        .tile span { font-size: 2.5rem; }
-        .tile p { font-size: 9px; font-weight: 800; color: #8e8e93; margin-top: 5px; }
+        .tile { background: rgba(255,255,255,0.3); border-radius: 35px; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.4s var(--spring); border: 1px solid rgba(255,255,255,0.5); }
+        .tile.on { background: #fff; transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 15px 30px rgba(0,122,255,0.1); }
+        .tile span { font-size: 3rem; }
+        .tile p { font-size: 10px; font-weight: 800; color: #8e8e93; margin-top: 5px; }
         
         .lux-particle { position: fixed; pointer-events: none; font-weight: 800; color: var(--accent); transition: all 2s; z-index: 10001; }
     </style>
@@ -85,9 +89,9 @@
         </section>
         <section id="v4" class="view">
             <div id="v-shield" class="vision-shield locked">
-                <h2>Safe Mode</h2>
-                <p style="margin: 20px 0; opacity: 0.6;">Контент защищен. Включите камеру для доступа.</p>
-                <button id="v-btn" onclick="toggleVision()" style="padding: 15px 35px; border-radius: 30px; border: none; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer;">Включить камеру</button>
+                <h2 style="font-size: 3rem; letter-spacing: -2px;">Protected Content</h2>
+                <p style="margin: 30px 0; font-size: 1.2rem; opacity: 0.6;">Для дешифровки данных требуется биометрическое подтверждение (FaceID).</p>
+                <button id="v-btn" onclick="startEliteVision()" style="padding: 20px 45px; border-radius: 40px; border: none; background: var(--accent); color: #fff; font-weight: 800; cursor: pointer; transition: 0.3s;">Активировать сканер</button>
             </div>
         </section>
         <section id="v5" class="view"><div class="sound-grid" id="audio-grid"></div></section>
@@ -102,10 +106,11 @@
             document.getElementById('v'+id).classList.add('active');
             el.classList.add('active');
             if(id === 3) setTimeout(() => map.invalidateSize(), 400);
-            if(id !== 4) stopVision();
+            if(id !== 4) stopEliteVision();
             if(id !== 5) silenceAll();
         }
 
+        // --- Очищение ---
         const cleanseInput = document.getElementById('cleanse-txt');
         cleanseInput.onkeydown = (e) => {
             if(e.key === 'Enter' && !e.shiftKey) {
@@ -119,52 +124,87 @@
                     el.style.top = (rect.top + Math.random() * rect.height) + 'px';
                     document.body.appendChild(el);
                     setTimeout(() => {
-                        el.style.transform = `translate(${(Math.random()-0.5)*1000}px, ${(Math.random()-0.5)*1000}px) scale(0) rotate(720deg)`;
+                        el.style.transform = `translate(${(Math.random()-0.5)*1200}px, ${(Math.random()-0.5)*1200}px) scale(0) rotate(1080deg)`;
                         el.style.opacity = '0';
                     }, 50);
-                    setTimeout(() => el.remove(), 2000);
+                    setTimeout(() => el.remove(), 2500);
                 });
                 cleanseInput.value = '';
             }
         };
 
+        // --- МКС ---
         const map = L.map('map', {zoomControl:false, attributionControl:false}).setView([0,0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        const issMarker = L.marker([0,0], {icon: L.divIcon({html:'🛰️', className:'', iconSize:[40,40]})}).addTo(map);
+        const issMarker = L.marker([0,0], {icon: L.divIcon({html:'<div style="font-size:30px">🛰️</div>', className:'', iconSize:[30,30]})}).addTo(map);
         async function updateISS() {
             try {
                 const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
                 const d = await r.json();
                 issMarker.setLatLng([d.latitude, d.longitude]);
                 if(currentTab === 3) map.panTo([d.latitude, d.longitude]);
-                document.getElementById('v-speed').innerText = Math.round(d.velocity) + ' км/ч';
+                document.getElementById('v-speed').innerText = Math.round(d.velocity).toLocaleString() + ' км/ч';
                 document.getElementById('v-alt').innerText = Math.round(d.altitude) + ' км';
             } catch(e) {}
         }
-        setInterval(updateISS, 4000); updateISS();
+        setInterval(updateISS, 3000); updateISS();
 
+        // --- ВЗГЛЯД (ELITE AI VERSION) ---
+        let model = null;
         let vStream = null;
-        async function toggleVision() {
+        let isDetecting = false;
+
+        async function startEliteVision() {
             const btn = document.getElementById('v-btn');
             const video = document.getElementById('webcam');
-            const shield = document.getElementById('v-shield');
+            btn.innerText = "Инициализация AI...";
+            btn.style.opacity = "0.5";
+
             try {
-                vStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                if (!model) model = await blazeface.load();
+                vStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = vStream;
-                video.style.display = 'block';
-                shield.classList.remove('locked');
-                btn.innerText = "Доступ разрешен";
+                video.onloadedmetadata = () => {
+                    video.play();
+                    video.style.display = 'block';
+                    isDetecting = true;
+                    btn.innerText = "Сканирование активно";
+                    btn.style.background = "#34c759";
+                    btn.style.opacity = "1";
+                    runDetection();
+                };
             } catch (err) {
-                btn.innerText = "Ошибка камеры";
+                btn.innerText = "Ошибка доступа к камере";
+                btn.style.background = "#ff3b30";
+                console.error(err);
             }
         }
-        function stopVision() {
-            if(vStream) vStream.getTracks().forEach(t => t.stop());
-            document.getElementById('webcam').style.display = 'none';
-            document.getElementById('v-shield').classList.add('locked');
-            document.getElementById('v-btn').innerText = "Включить камеру";
+
+        async function runDetection() {
+            if (!isDetecting) return;
+            const video = document.getElementById('webcam');
+            const shield = document.getElementById('v-shield');
+            
+            const predictions = await model.estimateFaces(video, false);
+            
+            if (predictions.length > 0) {
+                shield.classList.remove('locked');
+            } else {
+                shield.classList.add('locked');
+            }
+            requestAnimationFrame(runDetection);
         }
 
+        function stopEliteVision() {
+            isDetecting = false;
+            if (vStream) vStream.getTracks().forEach(t => t.stop());
+            document.getElementById('webcam').style.display = 'none';
+            document.getElementById('v-shield').classList.add('locked');
+            document.getElementById('v-btn').innerText = "Активировать сканер";
+            document.getElementById('v-btn').style.background = "var(--accent)";
+        }
+
+        // --- АТМОСФЕРА ---
         const sounds = [
             {n:'Rain', i:'🌧️', f:'rain.mp3'}, {n:'Fire', i:'🔥', f:'fire.mp3'},
             {n:'Forest', i:'🌲', f:'forest.mp3'}, {n:'Wind', i:'🌬️', f:'wind.mp3'},
@@ -180,7 +220,7 @@
             t.onclick = () => {
                 if(active[s.n]) { active[s.n].pause(); delete active[s.n]; t.classList.remove('on'); }
                 else { 
-                    const a = new Audio('sounds/'+s.f); a.loop = true; a.play(); 
+                    const a = new Audio('sounds/'+s.f); a.loop = true; a.play().catch(e => console.log("Файл не найден")); 
                     active[s.n] = a; t.classList.add('on'); 
                 }
             };
